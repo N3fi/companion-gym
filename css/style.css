@@ -217,23 +217,37 @@ ul.erreurs { color: var(--danger); }
   bottom: calc(12px + var(--safe-bottom));
   left: 12px; right: 12px;
   background: var(--bg-2);
-  border: 1px solid var(--accent);
+  border: 2px solid var(--accent);
   border-radius: var(--radius);
   padding: 10px;
+  z-index: 90;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  transition: border-color 0.2s;
+}
+.chrono.hidden { display: none; }
+.chrono-label {
+  font-size: 0.75rem;
+  color: var(--fg-dim);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+  min-height: 1em;
+}
+.chrono-ligne {
   display: flex;
   align-items: center;
   gap: 8px;
-  z-index: 90;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  margin-top: 6px;
 }
-.chrono.hidden { display: none; }
 .chrono-temps {
   flex: 1;
-  font-size: 1.6rem;
+  font-size: 2rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: center;
   color: var(--accent);
+  line-height: 1;
 }
 .chrono-btn {
   background: var(--bg-3);
@@ -243,9 +257,44 @@ ul.erreurs { color: var(--danger); }
   border-radius: 8px;
   font-size: 0.9rem;
   cursor: pointer;
-  min-width: 60px;
+  min-width: 52px;
 }
+.chrono-btn:active { background: var(--accent-dim); }
 .chrono-btn.chrono-stop { background: var(--danger); color: white; }
+.chrono-btn.hidden { display: none; }
+
+/* ---------- Modal minuteur libre ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.hidden { display: none; }
+.modal {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  max-width: 360px;
+  width: 100%;
+}
+.modal h3 { margin-bottom: 14px; font-size: 1rem; }
+.presets { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.presets button {
+  padding: 14px 8px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.presets button:active { background: var(--accent-dim); }
 
 /* ---------- Toast ---------- */
 .toast {
