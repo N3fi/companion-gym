@@ -1,0 +1,98 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-09-30",
+  "semaine_courante": "2026-W40",
+  "seances_types": {
+    "repos_actif": {
+      "id": "repos_actif",
+      "nom": "Repos actif",
+      "type": "repos_actif",
+      "duree_estimee_min": 40,
+      "blocs": [
+        { "type": "cardio", "ref": "tapis_repos_actif" },
+        {
+          "type": "mobilite",
+          "exercices": [
+            { "ref": "respiration_ventrale" },
+            { "ref": "chat_vache" },
+            { "ref": "rotation_buste_chaise" },
+            { "ref": "etirement_psoas_debout" },
+            { "ref": "etirement_fessier" },
+            { "ref": "etirement_ischio" },
+            { "ref": "respiration_ventrale" }
+          ]
+        },
+        { "type": "complement", "ref": "retractions_scapulaires" }
+      ]
+    },
+    "repos_actif_plus": {
+      "id": "repos_actif_plus",
+      "nom": "Repos actif + sac de frappe",
+      "type": "repos_actif",
+      "duree_estimee_min": 40,
+      "blocs": [
+        { "type": "cardio", "ref": "tapis_repos_actif" },
+        { "type": "conditionnement", "ref": "sac_de_frappe", "optionnel": true },
+        { "type": "complement", "ref": "retractions_scapulaires" }
+      ]
+    },
+    "full_body": {
+      "id": "full_body",
+      "nom": "Full body",
+      "type": "musculation",
+      "duree_estimee_min": 50,
+      "blocs": [
+        { "type": "cardio", "ref": "tapis_echauffement" },
+        {
+          "type": "musculation",
+          "exercices": [
+            { "ref": "presse_cuisses", "series": 3, "reps": 10,  "charge_cible_kg": null, "rpe_cible": 7.5 },
+            { "ref": "chest_press",    "series": 3, "reps": 10,  "charge_cible_kg": null, "rpe_cible": 7.5 },
+            { "ref": "lat_pulldown",   "series": 3, "reps": 10,  "charge_cible_kg": 23,   "rpe_cible": 7 },
+            { "ref": "leg_curl",       "series": 2, "reps": 12,  "charge_cible_kg": null, "rpe_cible": 7 },
+            { "ref": "rowing_poulie",  "series": 2, "reps": 10,  "charge_cible_kg": null, "rpe_cible": 7.5 },
+            { "ref": "planche",        "series": 2, "duree_sec": [20, 30], "rpe_cible": 7.5 }
+          ]
+        },
+        { "type": "cardio", "ref": "tapis_finisher" }
+      ]
+    }
+  },
+  "jours": {
+    "2026-09-30": {
+      "date": "2026-09-30",
+      "jour_semaine": "mercredi",
+      "seance_type": "repos_actif",
+      "override": null,
+      "notes": null
+    },
+    "2026-10-01": {
+      "date": "2026-10-01",
+      "jour_semaine": "jeudi",
+      "seance_type": "full_body",
+      "override": null,
+      "notes": null
+    },
+    "2026-10-02": {
+      "date": "2026-10-02",
+      "jour_semaine": "vendredi",
+      "seance_type": "repos_actif_plus",
+      "override": null,
+      "notes": null
+    },
+    "2026-10-03": {
+      "date": "2026-10-03",
+      "jour_semaine": "samedi",
+      "seance_type": "full_body",
+      "override": null,
+      "notes": null
+    },
+    "2026-10-04": {
+      "date": "2026-10-04",
+      "jour_semaine": "dimanche",
+      "seance_type": "repos_actif",
+      "override": null,
+      "notes": null
+    }
+  }
+}
