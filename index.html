@@ -14,6 +14,7 @@
   <header class="topbar">
     <button id="btn-menu" class="icon-btn" aria-label="Menu">☰</button>
     <h1 id="titre-vue">Aujourd'hui</h1>
+    <button id="btn-timer-libre" class="icon-btn" aria-label="Minuteur">⏱</button>
     <button id="btn-export-rapide" class="icon-btn" aria-label="Exporter">⇩</button>
   </header>
 
@@ -28,10 +29,17 @@
   </main>
 
   <div id="chrono" class="chrono hidden" role="timer">
-    <div class="chrono-temps" id="chrono-temps">00:00</div>
-    <button class="chrono-btn" id="chrono-moins">−15s</button>
-    <button class="chrono-btn chrono-stop" id="chrono-stop">Stop</button>
-    <button class="chrono-btn" id="chrono-plus">+15s</button>
+    <div id="chrono-label" class="chrono-label"></div>
+    <div class="chrono-ligne">
+      <button class="chrono-btn" id="chrono-moins">−15s</button>
+      <div class="chrono-temps" id="chrono-temps">00:00</div>
+      <button class="chrono-btn" id="chrono-plus">+15s</button>
+    </div>
+    <div class="chrono-ligne">
+      <button class="chrono-btn" id="chrono-skip">Suivant</button>
+      <button class="chrono-btn" id="chrono-pause">⏸</button>
+      <button class="chrono-btn chrono-stop" id="chrono-stop">Stop</button>
+    </div>
   </div>
 
   <div id="toast" class="toast hidden"></div>
