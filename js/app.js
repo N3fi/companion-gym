@@ -139,6 +139,51 @@ function creerSeanceVide(date, prog) {
   };
 }
 
+// --- Nouveau : sélecteur de boutons générique ---
+// options = [{val:'aucune', lbl:'Aucune', couleur:'ok'}, ...]
+function rendreChoixBoutons(options, valeur, onChange) {
+  const wrap = el('div', {
+    style: 'display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;',
+  });
+  for (const opt of options) {
+    const actif = valeur === opt.val;
+    const cls = actif ? 'btn petit' : 'btn secondaire petit';
+    const btn = el('button', {
+      class: cls,
+      style: 'flex:1;min-width:0;padding:8px 4px;font-size:0.8rem;'
+           + (actif && opt.couleur === 'warn' ? 'background:var(--warn);color:#000;' : '')
+           + (actif && opt.couleur === 'danger' ? 'background:var(--danger);' : ''),
+      onclick: async (ev) => {
+        ev.stopPropagation();
+        onChange(actif ? null : opt.val);
+      },
+    }, opt.lbl);
+    wrap.appendChild(btn);
+  }
+  return wrap;
+}
+
+const OPTIONS_DOULEUR = [
+  { val: 'aucune',   lbl: 'Aucune',   couleur: 'ok' },
+  { val: 'legere',   lbl: 'Légère',   couleur: 'warn' },
+  { val: 'genante',  lbl: 'Gênante',  couleur: 'warn' },
+  { val: 'forte',    lbl: 'Forte',    couleur: 'danger' },
+];
+
+const OPTIONS_DIFFICULTE = [
+  { val: 'facile',    lbl: 'Facile' },
+  { val: 'ok',        lbl: 'Ok' },
+  { val: 'difficile', lbl: 'Difficile', couleur: 'warn' },
+  { val: 'echec',     lbl: 'Échec',     couleur: 'danger' },
+];
+
+const OPTIONS_RESSENTI = [
+  { val: 'bien',      lbl: 'Bien' },
+  { val: 'tension',   lbl: 'Tension',   couleur: 'warn' },
+  { val: 'inconfort', lbl: 'Inconfort', couleur: 'warn' },
+  { val: 'douleur',   lbl: 'Douleur',   couleur: 'danger' },
+];
+
 async function rendreBloc(root, bloc, seance) {
   if (bloc.type === 'musculation') {
     root.appendChild(el('h2', { class: 'section' }, 'Musculation'));
@@ -177,16 +222,18 @@ async function rendreExerciceMuscu(root, exoDef, seance) {
   }
 
   // Récupère (ou crée) l'entrée séance pour cet exercice
-  let entree = seance.exercices.find(e => e.ref === exoDef.ref);
-  if (!entree) {
-    entree = {
-      ref: exoDef.ref,
-      nom_snapshot: exo.nom,
-      series: initialiserSeries(exoDef, exo),
-      notes: '',
-    };
-    seance.exercices.push(entree);
-  }
+    let entree = seance.exercices.find(e => e.ref === exoDef.ref);
+	if (!entree) {
+		entree = {
+		  ref: exoDef.ref,
+		  nom_snapshot: exo.nom,
+		  series: initialiserSeries(exoDef, exo),
+		  douleur: null,
+		  difficulte: null,
+		  notes: '',
+		};
+		seance.exercices.push(entree);
+	}
 
   const prescription = formaterPrescription(exoDef, exo);
   const body = el('div', { class: 'exo-body hidden' });
@@ -232,7 +279,25 @@ async function rendreExerciceMuscu(root, exoDef, seance) {
   entree.series.forEach((serie, idx) => {
     body.appendChild(rendreSerie(serie, idx, exo.repos_defaut_sec || 60, seance));
   });
+  
+  // Ressenti — douleur
+  body.appendChild(el('div', { class: 'serie-labels', style: 'grid-template-columns:1fr;margin-top:14px;' },
+    [el('span', {}, 'Douleur')]));
+  body.appendChild(rendreChoixBoutons(OPTIONS_DOULEUR, entree.douleur, async (val) => {
+    entree.douleur = val;
+    await sauvegarder(seance, { silencieux: true });
+    router('aujourdhui');
+  }));
 
+  // Ressenti — difficulté
+  body.appendChild(el('div', { class: 'serie-labels', style: 'grid-template-columns:1fr;margin-top:14px;' },
+    [el('span', {}, 'Difficulté ressentie')]));
+  body.appendChild(rendreChoixBoutons(OPTIONS_DIFFICULTE, entree.difficulte, async (val) => {
+    entree.difficulte = val;
+    await sauvegarder(seance, { silencieux: true });
+    router('aujourdhui');
+  }));
+  
   // Bouton + série
   body.appendChild(el('button', {
     class: 'btn secondaire petit',
@@ -349,10 +414,14 @@ async function rendreExerciceMobilite(root, exoDef, seance, typeOverride) {
   const exo = await getExercice(exoDef.ref);
   if (!exo) return;
 
-  const type = typeOverride || 'mobilite';
   let entree = seance.exercices.find(e => e.ref === exoDef.ref);
   if (!entree) {
-    entree = { ref: exoDef.ref, nom_snapshot: exo.nom, fait: false };
+    entree = {
+      ref: exoDef.ref,
+      nom_snapshot: exo.nom,
+      fait: false,
+      ressenti: null,
+    };
     seance.exercices.push(entree);
   }
 
@@ -369,7 +438,8 @@ async function rendreExerciceMobilite(root, exoDef, seance, typeOverride) {
     }, '▶ Voir la vidéo'));
   }
 
-  const btn = el('button', {
+  // Bouton Fait
+  const btnFait = el('button', {
     class: 'btn ' + (entree.fait ? 'secondaire' : 'petit'),
     style: 'margin-top:10px;',
     onclick: async (ev) => {
@@ -379,7 +449,21 @@ async function rendreExerciceMobilite(root, exoDef, seance, typeOverride) {
       router('aujourdhui');
     },
   }, entree.fait ? '✓ Fait' : 'Marquer comme fait');
-  body.appendChild(btn);
+  body.appendChild(btnFait);
+
+  // Ressenti (mobilité)
+  body.appendChild(el('div', { class: 'serie-labels', style: 'grid-template-columns:1fr;margin-top:14px;' },
+    [el('span', {}, 'Ressenti')]));
+  body.appendChild(rendreChoixBoutons(OPTIONS_RESSENTI, entree.ressenti, async (val) => {
+    entree.ressenti = val;
+    await sauvegarder(seance, { silencieux: true });
+    router('aujourdhui');
+  }));
+
+  // Marqueur dans l'en-tête
+  const marqueur = entree.ressenti === 'douleur' ? '⚠ '
+                 : entree.ressenti === 'inconfort' ? '! '
+                 : entree.fait ? '✓ ' : '';
 
   const container = el('div', { class: 'exo' }, [
     el('div', {
@@ -388,7 +472,7 @@ async function rendreExerciceMobilite(root, exoDef, seance, typeOverride) {
     }, [
       el('h3', {}, exo.nom),
       el('span', { class: 'prescription' },
-        entree.fait ? '✓' : (exo.duree_sec_defaut ? `${exo.duree_sec_defaut} s` : '')),
+        marqueur + (exo.duree_sec_defaut ? `${exo.duree_sec_defaut} s` : '')),
     ]),
     body,
   ]);
