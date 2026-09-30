@@ -1,0 +1,379 @@
+{
+  "schema_version": 2,
+  "updated_at": "2026-09-30",
+  "categories": ["musculation", "mobilite", "cardio", "conditionnement"],
+  "exercices": {
+    "presse_cuisses": {
+      "id": "presse_cuisses",
+      "nom": "Presse à cuisses",
+      "categorie": "musculation",
+      "type": "polyarticulaire",
+      "niveau": "debutant",
+      "groupe_principal": "jambes",
+      "muscles_secondaires": ["quadriceps", "fessiers"],
+      "materiel": ["presse_cuisses"],
+      "unite": "reps",
+      "repos_defaut_sec": 75,
+      "video_url": "https://www.youtube.com/results?search_query=presse+à+cuisses+technique+débutant",
+      "youtube_id": null,
+      "technique": [
+        "Dos et tête plaqués contre le dossier",
+        "Pieds largeur de hanches, au centre de la plateforme",
+        "Serre les abdos avant de pousser",
+        "Pousse avec les talons, sans verrouiller les genoux",
+        "Descends lentement (2 secondes), jusqu'à 90° max"
+      ],
+      "erreurs": [
+        "Décoller le bassin du dossier",
+        "Descendre trop bas",
+        "Verrouiller les genoux en haut"
+      ],
+      "alternatives": [],
+      "notes": null
+    },
+    "chest_press": {
+      "id": "chest_press",
+      "nom": "Chest press (machine)",
+      "categorie": "musculation",
+      "type": "polyarticulaire",
+      "niveau": "debutant",
+      "groupe_principal": "pectoraux",
+      "muscles_secondaires": ["triceps", "epaules"],
+      "materiel": ["chest_press"],
+      "unite": "reps",
+      "repos_defaut_sec": 75,
+      "video_url": "https://www.youtube.com/results?search_query=chest+press+machine+technique+débutant",
+      "youtube_id": null,
+      "technique": [
+        "Règle le siège pour que les poignées soient au milieu de la poitrine",
+        "Dos plaqué, omoplates serrées",
+        "Pousse sans verrouiller les coudes",
+        "Contrôle le retour (2 secondes)",
+        "Expire à la poussée"
+      ],
+      "erreurs": [
+        "Cambrer le dos",
+        "Coudes qui partent trop en arrière",
+        "Verrouiller les coudes"
+      ],
+      "alternatives": [],
+      "notes": null
+    },
+    "lat_pulldown": {
+      "id": "lat_pulldown",
+      "nom": "Tirage vertical (lat pulldown)",
+      "categorie": "musculation",
+      "type": "polyarticulaire",
+      "niveau": "debutant",
+      "groupe_principal": "dos",
+      "muscles_secondaires": ["dorsaux", "haut_du_dos", "biceps"],
+      "materiel": ["lat_pulldown"],
+      "unite": "reps",
+      "repos_defaut_sec": 75,
+      "video_url": "https://www.youtube.com/results?search_query=lat+pulldown+technique+débutant",
+      "youtube_id": null,
+      "technique": [
+        "Genoux calés sous les coussins",
+        "Prise légèrement plus large que les épaules",
+        "Poitrine haute, buste droit",
+        "Abaisse les omoplates avant de tirer",
+        "Tire vers le haut du sternum",
+        "Contrôle la remontée"
+      ],
+      "erreurs": [
+        "Balancer le buste",
+        "Tirer derrière la nuque",
+        "Hausser les épaules"
+      ],
+      "alternatives": [],
+      "notes": null
+    },
+    "leg_curl": {
+      "id": "leg_curl",
+      "nom": "Leg curl (ischio-jambiers)",
+      "categorie": "musculation",
+      "type": "isolation",
+      "niveau": "debutant",
+      "groupe_principal": "jambes",
+      "muscles_secondaires": ["ischio_jambiers"],
+      "materiel": ["leg_curl"],
+      "unite": "reps",
+      "repos_defaut_sec": 60,
+      "video_url": "https://www.youtube.com/results?search_query=leg+curl+machine+technique+débutant",
+      "youtube_id": null,
+      "technique": [
+        "Coussin juste au-dessus des chevilles",
+        "Dos plaqué, bassin collé au siège",
+        "Serre les abdos",
+        "Ramène les talons vers les fessiers en contrôlant",
+        "Redescends lentement (2 secondes)"
+      ],
+      "erreurs": [
+        "Décoller le bassin",
+        "Utiliser l'élan",
+        "Amplitude partielle"
+      ],
+      "alternatives": [],
+      "notes": null
+    },
+    "rowing_poulie": {
+      "id": "rowing_poulie",
+      "nom": "Rowing assis à la poulie",
+      "categorie": "musculation",
+      "type": "polyarticulaire",
+      "niveau": "debutant",
+      "groupe_principal": "dos",
+      "muscles_secondaires": ["milieu_du_dos", "biceps", "trapezes"],
+      "materiel": ["rowing_poulie"],
+      "unite": "reps",
+      "repos_defaut_sec": 75,
+      "video_url": "https://www.youtube.com/results?search_query=rowing+assis+poulie+technique+débutant",
+      "youtube_id": null,
+      "technique": [
+        "Pieds calés, genoux légèrement fléchis",
+        "Dos droit, poitrine ouverte",
+        "Tire vers le nombril",
+        "Serre les omoplates 1 seconde en fin de tirage",
+        "Contrôle le retour"
+      ],
+      "erreurs": [
+        "Arrondir le dos",
+        "Tirer avec les biceps seuls",
+        "Viser trop haut sur le torse"
+      ],
+      "alternatives": [],
+      "notes": null
+    },
+    "planche": {
+      "id": "planche",
+      "nom": "Planche (gainage)",
+      "categorie": "musculation",
+      "type": "isometrique",
+      "niveau": "debutant",
+      "groupe_principal": "abdos",
+      "muscles_secondaires": ["lombaires", "stabilite"],
+      "materiel": [],
+      "unite": "duree_sec",
+      "duree_sec_defaut": [20, 30],
+      "repos_defaut_sec": 60,
+      "video_url": "https://www.youtube.com/results?search_query=planche+gainage+technique+débutant",
+      "youtube_id": null,
+      "technique": [
+        "Appui sur avant-bras et pointes de pieds",
+        "Coudes sous les épaules",
+        "Corps en ligne droite des talons à la tête",
+        "Serre abdos et fessiers",
+        "Respire normalement"
+      ],
+      "erreurs": [
+        "Bassin trop haut ou trop bas",
+        "Apnée",
+        "Tête relevée"
+      ],
+      "alternatives": [],
+      "notes": null
+    },
+
+    "respiration_ventrale": {
+      "id": "respiration_ventrale",
+      "nom": "Respiration ventrale",
+      "categorie": "mobilite",
+      "type": "respiration",
+      "unite": "reps",
+      "reps_defaut": 5,
+      "video_url": "https://www.youtube.com/results?search_query=respiration+ventrale+technique",
+      "youtube_id": null,
+      "technique": [
+        "Assis ou allongé, une main sur le ventre",
+        "Inspire par le nez 4 secondes, ventre qui gonfle",
+        "Expire par la bouche 6 secondes, lentement"
+      ],
+      "erreurs": ["Respirer par la poitrine", "Retenir son souffle"],
+      "alternatives": [],
+      "notes": null
+    },
+    "chat_vache": {
+      "id": "chat_vache",
+      "nom": "Chat – vache",
+      "categorie": "mobilite",
+      "type": "mobilite_articulaire",
+      "unite": "reps",
+      "reps_defaut": 10,
+      "video_url": "https://www.youtube.com/results?search_query=chat+vache+exercice+dos",
+      "youtube_id": null,
+      "technique": [
+        "À quatre pattes, mains sous les épaules, genoux sous les hanches",
+        "Arrondis le dos vers le plafond (expire)",
+        "Creuse le dos, ventre vers le sol (inspire)"
+      ],
+      "erreurs": ["Aller trop vite", "Forcer l'amplitude"],
+      "alternatives": [],
+      "notes": null
+    },
+    "rotation_buste_chaise": {
+      "id": "rotation_buste_chaise",
+      "nom": "Rotation du buste sur chaise",
+      "categorie": "mobilite",
+      "type": "mobilite_articulaire",
+      "unite": "reps",
+      "reps_defaut": 8,
+      "unite_reps": "par_cote",
+      "video_url": "https://www.youtube.com/results?search_query=rotation+buste+chaise+mobilité+thoracique",
+      "youtube_id": null,
+      "technique": [
+        "Assis au fond de la chaise, pieds à plat, genoux serrés",
+        "Bras croisés sur la poitrine",
+        "Tourne uniquement les épaules, hanches fixes",
+        "Amplitude 20-30°, expire en tournant"
+      ],
+      "erreurs": ["Bouger les hanches", "Forcer l'amplitude", "Bloquer la respiration"],
+      "alternatives": [],
+      "notes": "Exercice de fond : amélioration en 2-3 semaines, pas immédiate."
+    },
+    "etirement_psoas_debout": {
+      "id": "etirement_psoas_debout",
+      "nom": "Étirement du psoas debout",
+      "categorie": "mobilite",
+      "type": "etirement",
+      "unite": "duree_sec",
+      "duree_sec_defaut": 30,
+      "unite_reps": "par_cote",
+      "video_url": "https://www.youtube.com/results?search_query=étirement+psoas+debout",
+      "youtube_id": null,
+      "technique": [
+        "Debout, petit pas en arrière",
+        "Descends légèrement le bassin",
+        "Sens l'étirement à l'avant de la hanche arrière",
+        "Dos droit, bassin rentré"
+      ],
+      "erreurs": ["Cambrer le bas du dos", "Forcer l'amplitude"],
+      "alternatives": [],
+      "notes": null
+    },
+    "etirement_fessier": {
+      "id": "etirement_fessier",
+      "nom": "Étirement fessier (piriforme)",
+      "categorie": "mobilite",
+      "type": "etirement",
+      "unite": "duree_sec",
+      "duree_sec_defaut": 30,
+      "unite_reps": "par_cote",
+      "video_url": "https://www.youtube.com/results?search_query=étirement+piriforme+fessier",
+      "youtube_id": null,
+      "technique": [
+        "Assis, une jambe tendue, l'autre pied de l'autre côté du genou",
+        "Tourne le buste vers le genou plié, sans forcer"
+      ],
+      "erreurs": ["Tirer avec les bras", "Arrondir le dos"],
+      "alternatives": [],
+      "notes": null
+    },
+    "etirement_ischio": {
+      "id": "etirement_ischio",
+      "nom": "Étirement ischio-jambiers assis",
+      "categorie": "mobilite",
+      "type": "etirement",
+      "unite": "duree_sec",
+      "duree_sec_defaut": 30,
+      "unite_reps": "par_cote",
+      "video_url": "https://www.youtube.com/results?search_query=étirement+ischio+jambiers+assis",
+      "youtube_id": null,
+      "technique": [
+        "Assis, une jambe tendue, l'autre pliée",
+        "Penche doucement le buste vers la jambe tendue, dos droit"
+      ],
+      "erreurs": ["Arrondir le dos pour aller plus loin"],
+      "alternatives": [],
+      "notes": null
+    },
+    "retractions_scapulaires": {
+      "id": "retractions_scapulaires",
+      "nom": "Rétractions scapulaires",
+      "categorie": "mobilite",
+      "type": "renforcement_postural",
+      "unite": "reps",
+      "reps_defaut": [10, 15],
+      "duree_sec_defaut": 3,
+      "duree_totale_min": 2,
+      "frequence": "tous_les_jours",
+      "video_url": "https://www.youtube.com/results?search_query=rétractions+scapulaires",
+      "youtube_id": null,
+      "technique": [
+        "Debout ou assis, bras le long du corps",
+        "Serre les omoplates l'une contre l'autre",
+        "Tiens 3 secondes, relâche"
+      ],
+      "erreurs": [],
+      "alternatives": [],
+      "notes": "Objectif : renforcer le haut du dos, réduire la douleur entre les omoplates."
+    },
+
+    "tapis_echauffement": {
+      "id": "tapis_echauffement",
+      "nom": "Tapis – échauffement",
+      "categorie": "cardio",
+      "type": "echauffement",
+      "duree_min_defaut": 10,
+      "vitesse_kmh_defaut": 4.5,
+      "inclinaison_pct_defaut": 3,
+      "phases": null,
+      "video_url": null,
+      "youtube_id": null,
+      "notes": null
+    },
+    "tapis_repos_actif": {
+      "id": "tapis_repos_actif",
+      "nom": "Tapis – repos actif",
+      "categorie": "cardio",
+      "type": "continu",
+      "duree_min_defaut": 30,
+      "phases": [
+        { "min": [0, 5],   "vitesse_kmh": 4.0, "inclinaison_pct": 2, "note": "mise en route" },
+        { "min": [5, 25],  "vitesse_kmh": 5.0, "inclinaison_pct": 5, "note": "croisière, conversation possible" },
+        { "min": [25, 30], "vitesse_kmh": 4.0, "inclinaison_pct": 2, "note": "retour au calme" }
+      ],
+      "video_url": null,
+      "youtube_id": null,
+      "notes": null
+    },
+    "tapis_finisher": {
+      "id": "tapis_finisher",
+      "nom": "Tapis – finisher",
+      "categorie": "cardio",
+      "type": "finisher",
+      "duree_min_defaut": 10,
+      "vitesse_kmh_defaut": 5.0,
+      "inclinaison_pct_defaut": 6,
+      "phases": null,
+      "video_url": null,
+      "youtube_id": null,
+      "notes": "À valider : intensité agressive pour un débutant juste après la muscu."
+    },
+
+    "sac_de_frappe": {
+      "id": "sac_de_frappe",
+      "nom": "Sac de frappe",
+      "categorie": "conditionnement",
+      "type": "boxe",
+      "rounds_defaut": 3,
+      "duree_round_min_defaut": 2,
+      "repos_entre_rounds_min_defaut": 1,
+      "intensite_defaut": "50-60% de la force max",
+      "materiel": ["gants_14oz", "bandes_de_boxe"],
+      "video_url": null,
+      "youtube_id": null,
+      "technique": [
+        "Poignets alignés, pas pliés",
+        "Rotation des hanches, pas seulement des bras",
+        "Buste droit, expire à chaque frappe"
+      ],
+      "erreurs": [
+        "Frapper à fond sans technique",
+        "Enchaîner sans repos",
+        "Frapper penché en avant"
+      ],
+      "alternatives": [],
+      "notes": null
+    }
+  }
+}
