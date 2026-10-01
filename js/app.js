@@ -847,7 +847,7 @@ async function rendreCardio(root, ref, seance) {
     seance.cardios[ref] = {
       ref,
       nom: exo.nom,
-      duree_min: null,
+      duree_min: exo.duree_min_defaut ?? null,
       fait: false,
     };
     await sauvegarder(seance, { silencieux: true });
@@ -861,7 +861,7 @@ async function rendreCardio(root, ref, seance) {
     value: c.duree_min ?? exo.duree_min_defaut ?? '',
     style: 'width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-3);color:var(--fg);font-size:1rem;',
   });
-  input.addEventListener('change', async () => {
+  input.addEventListener('input', async () => {
     c.duree_min = input.value === '' ? null : Number(input.value);
     await sauvegarder(seance, { silencieux: true });
   });
@@ -924,9 +924,16 @@ async function rendreCardio(root, ref, seance) {
       onclick: () => demarrerSequence(phases, {
         onFin: async () => {
           c.duree_min = totalMin;
+          c.fait = true;
           await sauvegarder(seance, { silencieux: true });
           toast(`Durée enregistrée : ${totalMin} min`, 'ok');
           input.value = totalMin;
+          // Met à jour l'UI locale
+          const container = btnFait.closest('.exo');
+          container.classList.add('exo-fait');
+          titre.textContent = '✓ ' + exo.nom;
+          btnFait.textContent = '✓ Fait';
+          btnFait.className = 'btn secondaire';
         },
       }),
     }, `⏱ Démarrer la séquence (${totalMin} min)`);
