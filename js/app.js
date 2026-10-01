@@ -1,6 +1,6 @@
 // Point d'entrée : bootstrap, routage entre vues.
 
-import { chargerExercices, chargerProgramme, getExercice, getProgrammeJour }
+import { chargerExercices, chargerProgramme, getExercice, getProgrammeJour, getPlageProgramme, importerProgramme, exporterProgramme, invaliderCacheProgramme }
   from './core/data.js';
 import { getAllSeances, getSeance, putSeance, deleteSeance,
          demanderPersistance, etatStockage } from './core/db.js';
@@ -88,6 +88,8 @@ async function vueAujourdhui() {
       ? el('span', { class: 'badge ok' }, 'Terminée')
       : (seance ? el('span', { class: 'badge warn' }, 'En cours') : null),
   ]));
+
+  await afficherBandeauProgramme(root, date);
 
   // Construction de la séance si première fois
   const seanceActive = seance || creerSeanceVide(date, prog);
@@ -656,6 +658,58 @@ async function rendreCardio(root, ref, seance) {
   }
 }
 
+async function afficherBandeauProgramme(root, dateAujourdhui) {
+  const plage = await getPlageProgramme();
+  if (!plage) {
+    root.appendChild(el('div', { class: 'carte', style: 'border-color:var(--danger);' }, [
+      el('h3', {}, '⚠ Aucun programme chargé'),
+      el('p', { class: 'meta' }, 'Importe un programme depuis Paramètres.'),
+    ]));
+    return;
+  }
+
+  // Programme en cours ?
+  const dansPlage = dateAujourdhui >= plage.debut && dateAujourdhui <= plage.fin;
+  const jourExiste = await getProgrammeJour(dateAujourdhui);
+
+  // Si aujourd'hui n'est pas dans le programme
+  if (!jourExiste) {
+    root.appendChild(el('div', { class: 'carte', style: 'border-color:var(--warn);' }, [
+      el('h3', {}, 'Pas de séance prévue aujourd\'hui'),
+      el('p', { class: 'meta' },
+        `Ton programme couvre du ${formatDateCourte(plage.debut)} au ${formatDateCourte(plage.fin)}.`),
+      el('button', {
+        class: 'btn secondaire petit',
+        style: 'margin-top:8px;',
+        onclick: () => router('parametres'),
+      }, 'Gérer le programme'),
+    ]));
+    return;
+  }
+
+  // Alerte si on approche de la fin (7 jours)
+  const [y, m, j] = plage.fin.split('-').map(Number);
+  const fin = new Date(y, m - 1, j);
+  const [ya, ma, ja] = dateAujourdhui.split('-').map(Number);
+  const auj = new Date(ya, ma - 1, ja);
+  const joursRestants = Math.round((fin - auj) / (1000 * 60 * 60 * 24));
+
+  if (joursRestants <= 7) {
+    root.appendChild(el('div', { class: 'carte', style: 'border-color:var(--warn);' }, [
+      el('h3', {}, '⏳ Programme bientôt terminé'),
+      el('p', { class: 'meta' },
+        joursRestants === 0
+          ? 'Dernier jour du programme aujourd\'hui.'
+          : `Il reste ${joursRestants} jour${joursRestants > 1 ? 's' : ''} avant la fin du programme.`),
+      el('button', {
+        class: 'btn secondaire petit',
+        style: 'margin-top:8px;',
+        onclick: () => router('parametres'),
+      }, 'Importer la suite'),
+    ]));
+  }
+}
+
 // ---------- Sauvegarde ----------
 
 async function sauvegarder(seance, opts = {}) {
@@ -719,6 +773,54 @@ async function vueHistorique() {
 async function vueParametres() {
   const root = vueEl();
   const etat = await etatStockage();
+  const plage = await getPlageProgramme();
+  const carteProgramme = el('div', { class: 'carte' }, [
+    el('h2', {}, 'Programme'),
+  ]);
+
+  if (!plage) {
+    carteProgramme.appendChild(el('p', { class: 'meta' }, 'Aucun programme chargé.'));
+  } else {
+    carteProgramme.appendChild(el('div', { class: 'detail-row' }, [
+      el('span', { class: 'lbl' }, 'Période'),
+      el('span', {}, `${formatDateCourte(plage.debut)} → ${formatDateCourte(plage.fin)}`),
+    ]));
+    carteProgramme.appendChild(el('div', { class: 'detail-row' }, [
+      el('span', { class: 'lbl' }, 'Jours'),
+      el('span', {}, String(plage.nb_jours)),
+    ]));
+    carteProgramme.appendChild(el('div', { class: 'detail-row' }, [
+      el('span', { class: 'lbl' }, 'Source'),
+      el('span', {}, plage.source === 'seed' ? 'Par défaut (repo)' : 'Importé'),
+    ]));
+    if (plage.imported_at) {
+      const d = new Date(plage.imported_at);
+      carteProgramme.appendChild(el('div', { class: 'detail-row' }, [
+        el('span', { class: 'lbl' }, 'Importé le'),
+        el('span', {}, d.toLocaleDateString('fr-FR')),
+      ]));
+    }
+  }
+
+  carteProgramme.appendChild(el('button', {
+    class: 'btn secondaire petit',
+    style: 'margin-top:12px;',
+    onclick: exporterProgrammeFichier,
+  }, 'Exporter le programme actif'));
+
+  const fileProg = el('input', {
+    type: 'file', accept: 'application/json', style: 'display:none;',
+    onchange: importerProgrammeFichier,
+  });
+  carteProgramme.appendChild(fileProg);
+
+  carteProgramme.appendChild(el('button', {
+    class: 'btn petit',
+    style: 'margin-top:8px;',
+    onclick: () => fileProg.click(),
+  }, 'Importer un programme (JSON)'));
+
+  root.appendChild(carteProgramme);
 
   root.appendChild(el('div', { class: 'carte' }, [
     el('h2', {}, 'Stockage'),
@@ -839,6 +941,35 @@ function ouvrirMinuteurLibre() {
     }, 'Annuler'),
   ]));
   document.body.appendChild(overlay);
+}
+
+async function exporterProgrammeFichier() {
+  const payload = await exporterProgramme();
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `programme-${aujourdhuiISO()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Programme exporté', 'ok');
+}
+
+async function importerProgrammeFichier(ev) {
+  const file = ev.target.files?.[0];
+  if (!file) return;
+  try {
+    const texte = await file.text();
+    const payload = JSON.parse(texte);
+    const res = await importerProgramme(payload);
+    invaliderCacheProgramme();
+    toast(`Programme importé : ${res.jours_ajoutes} jour(s), ${res.templates_ajoutes} template(s)`, 'ok');
+    router('parametres');
+  } catch (err) {
+    toast('Import impossible : ' + err.message, 'danger');
+  }
 }
 
 // ---------- Go ----------
