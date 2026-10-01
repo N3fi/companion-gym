@@ -1,5 +1,6 @@
-// Chargement des JSON statiques (exercices + programme).
-// Résolution par rapport au fichier courant via import.meta.url.
+// Chargement des données statiques (exercices) + programme (IDB avec fallback JSON).
+
+import { getProgrammeActif, putProgrammeActif } from './db.js';
 
 let cacheExercices = null;
 let cacheProgramme = null;
@@ -18,20 +19,37 @@ export async function chargerExercices() {
   return cacheExercices;
 }
 
+// Charge le programme : d'abord IDB, sinon seed JSON et le stocke.
 export async function chargerProgramme() {
   if (cacheProgramme) return cacheProgramme;
-  cacheProgramme = await chargerJSON('../../data/programme.json');
-  return cacheProgramme;
+
+  let prog = await getProgrammeActif();
+
+  if (!prog) {
+    // Premier lancement : on seed depuis le JSON du repo.
+    const seed = await chargerJSON('../../data/programme.json');
+    prog = {
+      ...seed,
+      source: 'seed',
+      imported_at: new Date().toISOString(),
+    };
+    await putProgrammeActif(prog);
+  }
+
+  cacheProgramme = prog;
+  return prog;
 }
 
-// Résout un exercice par son id. Renvoie null si introuvable.
+// Force le rechargement (après un import par exemple).
+export function invaliderCacheProgramme() {
+  cacheProgramme = null;
+}
+
 export async function getExercice(ref) {
   const exos = await chargerExercices();
   return exos[ref] || null;
 }
 
-// Résout le programme d'un jour donné (YYYY-MM-DD).
-// Renvoie { date, jour_semaine, seance_type, blocs, duree_estimee_min } ou null.
 export async function getProgrammeJour(date) {
   const prog = await chargerProgramme();
   const jour = prog.jours && prog.jours[date];
@@ -50,5 +68,60 @@ export async function getProgrammeJour(date) {
     duree_estimee_min: template.duree_estimee_min,
     blocs: jour.override?.blocs || template.blocs,
     notes: jour.notes,
+  };
+}
+
+// --- Nouveau : infos sur la plage du programme ---
+
+export async function getPlageProgramme() {
+  const prog = await chargerProgramme();
+  const dates = Object.keys(prog.jours || {}).sort();
+  if (dates.length === 0) return null;
+  return {
+    debut: dates[0],
+    fin: dates[dates.length - 1],
+    nb_jours: dates.length,
+    source: prog.source || 'inconnu',
+    imported_at: prog.imported_at || null,
+  };
+}
+
+// --- Nouveau : import d'un programme (fusion par date et par id de template) ---
+
+export async function importerProgramme(importe) {
+  if (!importe || typeof importe !== 'object') {
+    throw new Error('Format invalide : objet attendu.');
+  }
+  if (!importe.jours && !importe.seances_types) {
+    throw new Error('Le fichier doit contenir "jours" et/ou "seances_types".');
+  }
+
+  const actuel = await chargerProgramme();
+
+  const fusion = {
+    schema_version: 2,
+    seances_types: { ...(actuel.seances_types || {}), ...(importe.seances_types || {}) },
+    jours:         { ...(actuel.jours || {}),         ...(importe.jours || {}) },
+    source: 'import',
+    imported_at: new Date().toISOString(),
+  };
+
+  await putProgrammeActif(fusion);
+  cacheProgramme = fusion;
+  return {
+    jours_ajoutes: Object.keys(importe.jours || {}).length,
+    templates_ajoutes: Object.keys(importe.seances_types || {}).length,
+  };
+}
+
+// --- Nouveau : export du programme actif ---
+
+export async function exporterProgramme() {
+  const prog = await chargerProgramme();
+  return {
+    schema_version: 2,
+    exported_at: new Date().toISOString(),
+    seances_types: prog.seances_types || {},
+    jours: prog.jours || {},
   };
 }
