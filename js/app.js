@@ -784,11 +784,11 @@ async function rendreExerciceMobilite(root, exoDef, seance, typeOverride) {
   const btnFait = el('button', {
     class: 'btn ' + (entree.fait ? 'secondaire' : 'petit'),
     style: 'margin-top:10px;',
-    if (entree.fait) container.classList.add('exo-fait');
-    else container.classList.remove('exo-fait');
     onclick: async (ev) => {
       ev.stopPropagation();
       entree.fait = !entree.fait;
+      if (entree.fait) container.classList.add('exo-fait');
+      else container.classList.remove('exo-fait');
       await sauvegarder(seance, { silencieux: true });
       ev.target.textContent = entree.fait ? '✓ Fait' : 'Marquer comme fait';
       ev.target.className = 'btn ' + (entree.fait ? 'secondaire' : 'petit');
