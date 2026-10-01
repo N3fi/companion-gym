@@ -327,3 +327,24 @@ ul.erreurs { color: var(--danger); }
 .hidden { display: none !important; }
 h2.section { font-size: 0.9rem; color: var(--fg-dim); text-transform: uppercase;
              letter-spacing: 0.05em; margin: 20px 4px 8px; }
+
+/* Exo terminé : fond légèrement vert */
+.exo.exo-fait {
+  background: linear-gradient(180deg, rgba(62,207,142,0.10), rgba(62,207,142,0.04));
+  border-color: rgba(62,207,142,0.35);
+}
+.exo.exo-fait .exo-header h3 {
+  color: var(--ok);
+}
+.exo.exo-fait .exo-header .prescription {
+  color: var(--ok);
+  opacity: 0.9;
+}
+
+/* Variante "durée" pour les séries isométriques */
+.serie.serie-duree {
+  grid-template-columns: 40px 1fr 1fr 40px 40px;
+}
+.serie-labels.serie-labels-duree {
+  grid-template-columns: 40px 1fr 1fr 40px 40px;
+}
