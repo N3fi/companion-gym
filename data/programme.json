@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-09-30",
+  "updated_at": "2026-10-01",
   "semaine_courante": "2026-W40",
   "seances_types": {
     "repos_actif": {
@@ -46,12 +46,60 @@
         {
           "type": "musculation",
           "exercices": [
-            { "ref": "presse_cuisses", "series": 3, "reps": 10,  "charge_cible_kg": null, "rpe_cible": 7.5 },
-            { "ref": "chest_press",    "series": 3, "reps": 10,  "charge_cible_kg": null, "rpe_cible": 7.5 },
-            { "ref": "lat_pulldown",   "series": 3, "reps": 10,  "charge_cible_kg": 23,   "rpe_cible": 7 },
-            { "ref": "leg_curl",       "series": 2, "reps": 12,  "charge_cible_kg": null, "rpe_cible": 7 },
-            { "ref": "rowing_poulie",  "series": 2, "reps": 10,  "charge_cible_kg": null, "rpe_cible": 7.5 },
-            { "ref": "planche",        "series": 2, "duree_sec": [20, 30], "rpe_cible": 7.5 }
+            {
+              "ref": "presse_cuisses",
+              "position": "pieds_milieu",
+              "charge_de_depart_kg": 40,
+              "series": 3,
+              "reps": 10,
+              "rpe_cible": 7.5
+            },
+            {
+              "ref": "chest_press",
+              "position": "prise_neutre",
+              "charge_de_depart_kg": 25,
+              "series": 3,
+              "reps": 10,
+              "rpe_cible": 7.5
+            },
+            {
+              "ref": "lat_pulldown",
+              "position": "prise_pronation",
+              "charge_de_depart_kg": 30,
+              "series": 3,
+              "reps": 10,
+              "rpe_cible": 7
+            },
+            {
+              "ref": "leg_curl",
+              "position": "standard",
+              "charge_de_depart_kg": 15,
+              "series": 2,
+              "reps": 12,
+              "rpe_cible": 7
+            },
+            {
+              "ref": "rowing_poulie",
+              "position": "prise_neutre",
+              "charge_de_depart_kg": 25,
+              "series": 2,
+              "reps": 10,
+              "rpe_cible": 7.5
+            },
+            {
+              "ref": "leg_extension",
+              "position": "standard",
+              "charge_de_depart_kg": 20,
+              "series": 2,
+              "reps": 12,
+              "rpe_cible": 7
+            },
+            {
+              "ref": "planche",
+              "series": 2,
+              "duree_sec": [20, 30],
+              "rpe_cible": 7.5
+            }
           ]
         },
         { "type": "cardio", "ref": "tapis_finisher" }
@@ -59,40 +107,10 @@
     }
   },
   "jours": {
-    "2026-09-30": {
-      "date": "2026-09-30",
-      "jour_semaine": "mercredi",
-      "seance_type": "repos_actif",
-      "override": null,
-      "notes": null
-    },
-    "2026-10-01": {
-      "date": "2026-10-01",
-      "jour_semaine": "jeudi",
-      "seance_type": "full_body",
-      "override": null,
-      "notes": null
-    },
-    "2026-10-02": {
-      "date": "2026-10-02",
-      "jour_semaine": "vendredi",
-      "seance_type": "repos_actif_plus",
-      "override": null,
-      "notes": null
-    },
-    "2026-10-03": {
-      "date": "2026-10-03",
-      "jour_semaine": "samedi",
-      "seance_type": "full_body",
-      "override": null,
-      "notes": null
-    },
-    "2026-10-04": {
-      "date": "2026-10-04",
-      "jour_semaine": "dimanche",
-      "seance_type": "repos_actif",
-      "override": null,
-      "notes": null
-    }
+    "2026-09-30": { "date": "2026-09-30", "jour_semaine": "mercredi", "seance_type": "repos_actif", "override": null, "notes": null },
+    "2026-10-01": { "date": "2026-10-01", "jour_semaine": "jeudi",    "seance_type": "full_body",   "override": null, "notes": null },
+    "2026-10-02": { "date": "2026-10-02", "jour_semaine": "vendredi", "seance_type": "repos_actif_plus", "override": null, "notes": null },
+    "2026-10-03": { "date": "2026-10-03", "jour_semaine": "samedi",   "seance_type": "full_body",   "override": null, "notes": null },
+    "2026-10-04": { "date": "2026-10-04", "jour_semaine": "dimanche", "seance_type": "repos_actif", "override": null, "notes": null }
   }
 }
