@@ -6,8 +6,7 @@ import { getAllSeances, getSeance, putSeance, deleteSeance,
          demanderPersistance, etatStockage } from './core/db.js';
 import { el, vider, toast, aujourdhuiISO, formatDateLongue,
          formatDateCourte, jourSemaine, formatOctets } from './ui/helpers.js';
-import { start as chronoStart, stop as chronoStop, initChrono } from './ui/chrono.js';
-
+import { demarrerSimple, demarrerSequence, arreter as timerArreter, initTimer } from './ui/timer.js';
 const vueEl = () => document.getElementById('vue');
 const titreEl = () => document.getElementById('titre-vue');
 const menuEl = () => document.getElementById('menu');
@@ -15,7 +14,7 @@ const menuEl = () => document.getElementById('menu');
 // ---------- Bootstrap ----------
 
 async function init() {
-  initChrono();
+  initTimer();
 
   document.getElementById('btn-menu')?.addEventListener('click', () => {
     menuEl()?.classList.toggle('hidden');
@@ -27,6 +26,8 @@ async function init() {
       router(btn.dataset.vue);
     });
   });
+  
+  document.getElementById('btn-timer-libre')?.addEventListener('click', ouvrirMinuteurLibre);
 
   document.getElementById('btn-export-rapide')?.addEventListener('click', exporter);
 
@@ -211,6 +212,11 @@ async function rendreBloc(root, bloc, seance) {
     root.appendChild(el('h2', { class: 'section' }, 'Complément'));
     await rendreExerciceMobilite(root, { ref: bloc.ref }, seance, 'complement');
   }
+  if (bloc.type === 'conditionnement') {
+    root.appendChild(el('h2', { class: 'section' }, 'Conditionnement'));
+    await rendreConditionnement(root, bloc.ref, seance);
+    return;
+  }
 }
 
 async function rendreExerciceMuscu(root, exoDef, seance) {
@@ -280,6 +286,21 @@ async function rendreExerciceMuscu(root, exoDef, seance) {
     body.appendChild(rendreSerie(serie, idx, exo.repos_defaut_sec || 60, seance));
   });
   
+  // Bouton "démarrer le chrono" pour les exercices en durée (planche, gainage…)
+  if (exo.unite === 'duree_sec' || exoDef.duree_sec) {
+    const duree = Array.isArray(exoDef.duree_sec)
+      ? exoDef.duree_sec[1]
+      : (exoDef.duree_sec || exo.duree_sec_defaut || 30);
+    body.appendChild(el('button', {
+      class: 'btn secondaire petit',
+      style: 'margin-top:8px;',
+      onclick: (ev) => {
+        ev.stopPropagation();
+        demarrerSimple(duree, { label: exo.nom, type: 'travail' });
+      },
+    }, `⏱ Démarrer ${duree} sec`));
+  }
+  
   // Ressenti — douleur
   body.appendChild(el('div', { class: 'serie-labels', style: 'grid-template-columns:1fr;margin-top:14px;' },
     [el('span', {}, 'Douleur')]));
@@ -329,6 +350,88 @@ async function rendreExerciceMuscu(root, exoDef, seance) {
   body.appendChild(notesExo);
 
   container.appendChild(body);
+  root.appendChild(container);
+}
+
+async function rendreConditionnement(root, ref, seance) {
+  const exo = await getExercice(ref);
+  if (!exo) return;
+
+  let entree = seance.exercices.find(e => e.ref === ref);
+  if (!entree) {
+    entree = {
+      ref,
+      nom_snapshot: exo.nom,
+      rounds: exo.rounds_defaut || 3,
+      duree_round_min: exo.duree_round_min_defaut || 2,
+      repos_min: exo.repos_entre_rounds_min_defaut || 1,
+      fait: false,
+    };
+    seance.exercices.push(entree);
+  }
+
+  const body = el('div', { class: 'exo-body hidden' });
+  if (exo.technique?.length) {
+    body.appendChild(el('ul', { class: 'technique' },
+      exo.technique.map(t => el('li', {}, t))));
+  }
+  if (exo.erreurs?.length) {
+    body.appendChild(el('ul', { class: 'erreurs' },
+      exo.erreurs.map(t => el('li', {}, t))));
+  }
+  if (exo.materiel?.length) {
+    body.appendChild(el('p', { class: 'meta', style: 'margin-top:8px;' },
+      'Matériel : ' + exo.materiel.join(', ')));
+  }
+
+  const totalRounds = entree.rounds;
+  const dureeRound = entree.duree_round_min;
+  const repos = entree.repos_min;
+
+  body.appendChild(el('button', {
+    class: 'btn secondaire',
+    style: 'margin-top:12px;',
+    onclick: (ev) => {
+      ev.stopPropagation();
+      const phases = [];
+      for (let i = 0; i < totalRounds; i++) {
+        phases.push({ duree_sec: dureeRound * 60, label: `Round ${i + 1}`, type: 'travail' });
+        if (i < totalRounds - 1) {
+          phases.push({ duree_sec: repos * 60, label: `Repos ${i + 1}`, type: 'repos' });
+        }
+      }
+      demarrerSequence(phases, {
+        onFin: async () => {
+          entree.fait = true;
+          await sauvegarder(seance, { silencieux: true });
+          router('aujourdhui');
+        },
+      });
+    },
+  }, `⏱ Démarrer ${totalRounds} rounds`));
+
+  body.appendChild(el('button', {
+    class: 'btn ' + (entree.fait ? 'secondaire' : 'petit'),
+    style: 'margin-top:8px;',
+    onclick: async (ev) => {
+      ev.stopPropagation();
+      entree.fait = !entree.fait;
+      await sauvegarder(seance, { silencieux: true });
+      router('aujourdhui');
+    },
+  }, entree.fait ? '✓ Fait' : 'Marquer comme fait'));
+
+  const container = el('div', { class: 'exo' }, [
+    el('div', {
+      class: 'exo-header',
+      onclick: () => body.classList.toggle('hidden'),
+    }, [
+      el('h3', {}, exo.nom),
+      el('span', { class: 'prescription' },
+        (entree.fait ? '✓ ' : '') + `${totalRounds}×${dureeRound} min`),
+    ]),
+    body,
+  ]);
   root.appendChild(container);
 }
 
@@ -384,8 +487,7 @@ function rendreSerie(serie, idx, reposSec, seance) {
     onclick: async (ev) => {
       ev.stopPropagation();
       serie.validee = !serie.validee;
-      if (serie.validee) chronoStart(reposSec);
-      else chronoStop();
+      if (serie.validee) demarrerSimple(reposSec, { label: 'Repos' });
       await sauvegarder(seance, { silencieux: true });
       router('aujourdhui');
     },
@@ -450,7 +552,19 @@ async function rendreExerciceMobilite(root, exoDef, seance, typeOverride) {
     },
   }, entree.fait ? '✓ Fait' : 'Marquer comme fait');
   body.appendChild(btnFait);
-
+  
+  // Bouton chrono pour les étirements / exercices en durée
+  if (exo.duree_sec_defaut) {
+    body.appendChild(el('button', {
+      class: 'btn secondaire petit',
+      style: 'margin-top:8px;',
+      onclick: (ev) => {
+        ev.stopPropagation();
+        demarrerSimple(exo.duree_sec_defaut, { label: exo.nom, type: 'travail' });
+      },
+    }, `⏱ Démarrer ${exo.duree_sec_defaut} sec`));
+  }
+  
   // Ressenti (mobilité)
   body.appendChild(el('div', { class: 'serie-labels', style: 'grid-template-columns:1fr;margin-top:14px;' },
     [el('span', {}, 'Ressenti')]));
@@ -514,6 +628,32 @@ async function rendreCardio(root, ref, seance) {
       input,
     ]),
   ]));
+  
+  // Si le cardio a des phases, proposer un minuteur de séquence
+  if (Array.isArray(exo.phases) && exo.phases.length > 0) {
+    const phases = exo.phases.map(p => {
+      const [d1, d2] = p.min;
+      return {
+        duree_sec: (d2 - d1) * 60,
+        label: p.note || `${d1}-${d2} min`,
+        type: 'travail',
+      };
+    });
+    const totalMin = exo.phases.reduce((acc, p) => acc + (p.min[1] - p.min[0]), 0);
+    const btn = el('button', {
+      class: 'btn secondaire',
+      style: 'margin-top:10px;',
+      onclick: () => demarrerSequence(phases, {
+        onFin: async () => {
+          seance.cardio.duree_min = totalMin;
+          await sauvegarder(seance, { silencieux: true });
+          toast(`Durée enregistrée : ${totalMin} min`, 'ok');
+          router('aujourdhui');
+        },
+      }),
+    }, `⏱ Démarrer la séquence (${totalMin} min)`);
+    root.appendChild(btn);
+  }
 }
 
 // ---------- Sauvegarde ----------
@@ -667,6 +807,38 @@ async function importer(ev) {
   } catch (err) {
     toast('Import impossible : ' + err.message, 'danger');
   }
+}
+
+function ouvrirMinuteurLibre() {
+  // Crée un overlay à la volée
+  const overlay = el('div', { class: 'modal-overlay', onclick: (e) => {
+    if (e.target === overlay) overlay.remove();
+  }});
+  const presets = [
+    { lbl: '30 s',   sec: 30 },
+    { lbl: '1 min',  sec: 60 },
+    { lbl: '2 min',  sec: 120 },
+    { lbl: '3 min',  sec: 180 },
+    { lbl: '5 min',  sec: 300 },
+    { lbl: '10 min', sec: 600 },
+  ];
+  const grille = el('div', { class: 'presets' },
+    presets.map(p => el('button', {
+      onclick: () => {
+        overlay.remove();
+        demarrerSimple(p.sec, { label: 'Minuteur libre', type: 'travail' });
+      },
+    }, p.lbl)));
+  overlay.appendChild(el('div', { class: 'modal' }, [
+    el('h3', {}, 'Minuteur libre'),
+    grille,
+    el('button', {
+      class: 'btn secondaire petit',
+      style: 'margin-top:14px;',
+      onclick: () => overlay.remove(),
+    }, 'Annuler'),
+  ]));
+  document.body.appendChild(overlay);
 }
 
 // ---------- Go ----------
