@@ -3,7 +3,8 @@
 import { chargerExercices, chargerProgramme, getExercice, getProgrammeJour, getPlageProgramme, importerProgramme, exporterProgramme, invaliderCacheProgramme }
   from './core/data.js';
 import { getAllSeances, getSeance, putSeance, deleteSeance,
-         demanderPersistance, etatStockage } from './core/db.js';
+         demanderPersistance, etatStockage,
+         getEtatExercice, putEtatExercice } from './core/db.js';
 import { el, vider, toast, aujourdhuiISO, formatDateLongue,
          formatDateCourte, jourSemaine, formatOctets } from './ui/helpers.js';
 import { demarrerSimple, demarrerSequence, arreter as timerArreter, initTimer } from './ui/timer.js';
@@ -119,9 +120,13 @@ async function vueAujourdhui() {
     class: seanceActive.terminee ? 'btn secondaire' : 'btn',
     style: 'margin-top:16px;',
     onclick: async () => {
-      seanceActive.terminee = !seanceActive.terminee;
+      const vaTerminer = !seanceActive.terminee;
+      seanceActive.terminee = vaTerminer;
       await sauvegarder(seanceActive);
-      toast(seanceActive.terminee ? 'Séance enregistrée' : 'Séance réouverte', 'ok');
+      if (vaTerminer) {
+        await mettreAJourEtatExercices(seanceActive);
+      }
+      toast(vaTerminer ? 'Séance enregistrée' : 'Séance réouverte', 'ok');
       router('aujourdhui');
     },
   }, seanceActive.terminee ? 'Réouvrir la séance' : 'Terminer la séance'));
@@ -224,26 +229,30 @@ async function rendreBloc(root, bloc, seance) {
 async function rendreExerciceMuscu(root, exoDef, seance) {
   const exo = await getExercice(exoDef.ref);
   if (!exo) {
-    root.appendChild(el('div', { class: 'carte' },
-      `Exercice introuvable : ${exoDef.ref}`));
+    root.appendChild(el('div', { class: 'carte' }, `Exercice introuvable : ${exoDef.ref}`));
     return;
   }
 
-  // Récupère (ou crée) l'entrée séance pour cet exercice
-    let entree = seance.exercices.find(e => e.ref === exoDef.ref);
-	if (!entree) {
-		entree = {
-		  ref: exoDef.ref,
-		  nom_snapshot: exo.nom,
-		  series: initialiserSeries(exoDef, exo),
-		  douleur: null,
-		  difficulte: null,
-		  notes: '',
-		};
-		seance.exercices.push(entree);
-	}
+  // --- Récupère (ou crée) l'entrée séance ---
+  let entree = seance.exercices.find(e => e.ref === exoDef.ref);
+  if (!entree) {
+    const posId = exoDef.position ?? (exo.positions?.[0]?.id ?? null);
+    entree = {
+      ref: exoDef.ref,
+      nom_snapshot: exo.nom,
+      position: posId,
+      series: await initialiserSeries(exoDef, exo),
+      douleur: null,
+      difficulte: null,
+      notes: '',
+    };
+    seance.exercices.push(entree);
+  }
 
-  const prescription = formaterPrescription(exoDef, exo);
+  const posId = entree.position;
+  const position = exo.positions?.find(p => p.id === posId);
+  const prescription = formaterPrescription(exoDef, exo, position);
+
   const body = el('div', { class: 'exo-body hidden' });
 
   const container = el('div', { class: 'exo' }, [
@@ -252,24 +261,98 @@ async function rendreExerciceMuscu(root, exoDef, seance) {
       onclick: () => body.classList.toggle('hidden'),
     }, [
       el('h3', {}, exo.nom),
-      el('span', { class: 'prescription' }, prescription),
+      el('span', { class: 'prescription' },
+        (entree.douleur && entree.douleur !== 'aucune' ? '⚠ ' : '')
+        + (entree.difficulte === 'echec' ? '✗ ' : '')
+        + prescription),
     ]),
   ]);
 
-  // Détails techniques
-  body.appendChild(el('div', { class: 'detail-row' }, [
-    el('span', { class: 'lbl' }, 'Repos'),
-    el('span', {}, `${exo.repos_defaut_sec || 60} s`),
-  ]));
+  // --- Dernière perf ---
+  try {
+    const etat = await getEtatExercice(exo.id);
+    if (etat?.derniere_charge_kg && etat.position_active === posId) {
+      body.appendChild(el('div', {
+        style: 'font-size:0.8rem;color:var(--fg-dim);text-align:center;padding:8px 0;'
+      }, `Dernière fois : ${etat.derniere_charge_kg} kg (${formatDateCourte(etat.derniere_seance)})`));
+    }
+  } catch {}
+
+  // --- Réglages machine ---
+  if (exo.reglages && Object.keys(exo.reglages).length) {
+    const ordre = ['siege', 'dossier', 'alignement_pivot', 'coussin_chevilles',
+                   'coussin_cuisses', 'coussin_genoux', 'coussin_pectoral',
+                   'prise', 'plateforme', 'amplitude'];
+    const cles = Object.keys(exo.reglages).sort((a, b) => {
+      const ia = ordre.indexOf(a), ib = ordre.indexOf(b);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    });
+    body.appendChild(el('div', {
+      style: 'background:var(--bg-3);padding:10px;border-radius:8px;margin-top:10px;'
+    }, [
+      el('div', { style: 'font-size:0.75rem;color:var(--fg-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;' },
+        'Réglages'),
+      ...cles.map(k => el('div', { style: 'font-size:0.85rem;line-height:1.4;margin-bottom:4px;' }, [
+        el('span', { style: 'color:var(--fg-dim);' }, k.replace(/_/g, ' ') + ' : '),
+        exo.reglages[k],
+      ])),
+    ]));
+  }
+
+  // --- Notes machine ---
+  if (exo.notes_machine) {
+    body.appendChild(el('div', {
+      style: 'background:rgba(76,141,255,0.08);padding:10px;border-radius:8px;margin-top:8px;font-size:0.85rem;line-height:1.4;'
+    }, [
+      el('div', { style: 'font-size:0.75rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;' },
+        'Machine'),
+      exo.notes_machine,
+    ]));
+  }
+
+  // --- Sélecteur de position ---
+  if (exo.positions && exo.positions.length > 0) {
+    const posWrap = el('div', { style: 'margin-top:10px;' }, [
+      el('div', { style: 'font-size:0.75rem;color:var(--fg-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;' },
+        'Position'),
+    ]);
+    exo.positions.forEach(pos => {
+      const active = pos.id === posId;
+      posWrap.appendChild(el('div', {
+        style: 'padding:8px;border-radius:6px;margin-bottom:4px;font-size:0.85rem;cursor:pointer;'
+          + (active ? 'background:var(--accent);color:white;' : 'background:var(--bg-3);'),
+        onclick: async (ev) => {
+          ev.stopPropagation();
+          if (pos.id === posId) return;
+          entree.position = pos.id;
+          // Réinitialise les séries non validées avec la charge de départ de la nouvelle position
+          const charge = pos.charge_kg_depart ?? exo.charge_kg_depart ?? null;
+          for (const s of entree.series) {
+            if (!s.validee) s.charge_kg = charge;
+          }
+          await sauvegarder(seance, { silencieux: true });
+          router('aujourdhui');
+        },
+      }, [
+        el('div', { style: 'font-weight:600;' }, pos.cible || pos.id),
+        pos.description ? el('div', { style: 'font-size:0.8rem;opacity:0.9;' }, pos.description) : null,
+        pos.charge_kg_depart ? el('div', { style: 'font-size:0.8rem;opacity:0.9;' }, `Départ : ${pos.charge_kg_depart} kg`) : null,
+        pos.notes ? el('div', { style: 'font-size:0.75rem;opacity:0.75;margin-top:2px;' }, pos.notes) : null,
+      ]));
+    });
+    body.appendChild(posWrap);
+  }
+
+  // --- Technique / erreurs ---
   if (exo.technique?.length) {
-    body.appendChild(el('div', { class: 'detail-row' }, el('span', { class: 'lbl' }, 'Technique')));
-    body.appendChild(el('ul', { class: 'technique' },
-      exo.technique.map(t => el('li', {}, t))));
+    body.appendChild(el('div', { style: 'font-size:0.75rem;color:var(--fg-dim);text-transform:uppercase;letter-spacing:0.05em;margin-top:14px;margin-bottom:4px;' },
+      'Technique'));
+    body.appendChild(el('ul', { class: 'technique' }, exo.technique.map(t => el('li', {}, t))));
   }
   if (exo.erreurs?.length) {
-    body.appendChild(el('div', { class: 'detail-row' }, el('span', { class: 'lbl' }, 'À éviter')));
-    body.appendChild(el('ul', { class: 'erreurs' },
-      exo.erreurs.map(t => el('li', {}, t))));
+    body.appendChild(el('div', { style: 'font-size:0.75rem;color:var(--fg-dim);text-transform:uppercase;letter-spacing:0.05em;margin-top:14px;margin-bottom:4px;' },
+      'À éviter'));
+    body.appendChild(el('ul', { class: 'erreurs' }, exo.erreurs.map(t => el('li', {}, t))));
   }
   if (exo.video_url) {
     body.appendChild(el('a', {
@@ -278,7 +361,9 @@ async function rendreExerciceMuscu(root, exoDef, seance) {
     }, '▶ Voir la vidéo'));
   }
 
-  // Tableau des séries
+  // --- Séries ---
+  body.appendChild(el('div', { style: 'font-size:0.75rem;color:var(--fg-dim);text-transform:uppercase;letter-spacing:0.05em;margin-top:14px;margin-bottom:4px;' },
+    'Séries'));
   body.appendChild(el('div', { class: 'serie-labels' }, [
     el('span', {}, '#'), el('span', {}, 'Reps'),
     el('span', {}, 'kg'), el('span', {}, 'RPE'), el('span', {}, ''),
@@ -287,8 +372,8 @@ async function rendreExerciceMuscu(root, exoDef, seance) {
   entree.series.forEach((serie, idx) => {
     body.appendChild(rendreSerie(serie, idx, exo.repos_defaut_sec || 60, seance));
   });
-  
-  // Bouton "démarrer le chrono" pour les exercices en durée (planche, gainage…)
+
+  // --- Bouton chrono pour exercices en durée ---
   if (exo.unite === 'duree_sec' || exoDef.duree_sec) {
     const duree = Array.isArray(exoDef.duree_sec)
       ? exoDef.duree_sec[1]
@@ -302,30 +387,13 @@ async function rendreExerciceMuscu(root, exoDef, seance) {
       },
     }, `⏱ Démarrer ${duree} sec`));
   }
-  
-  // Ressenti — douleur
-  body.appendChild(el('div', { class: 'serie-labels', style: 'grid-template-columns:1fr;margin-top:14px;' },
-    [el('span', {}, 'Douleur')]));
-  body.appendChild(rendreChoixBoutons(OPTIONS_DOULEUR, entree.douleur, async (val) => {
-    entree.douleur = val;
-    await sauvegarder(seance, { silencieux: true });
-    router('aujourdhui');
-  }));
 
-  // Ressenti — difficulté
-  body.appendChild(el('div', { class: 'serie-labels', style: 'grid-template-columns:1fr;margin-top:14px;' },
-    [el('span', {}, 'Difficulté ressentie')]));
-  body.appendChild(rendreChoixBoutons(OPTIONS_DIFFICULTE, entree.difficulte, async (val) => {
-    entree.difficulte = val;
-    await sauvegarder(seance, { silencieux: true });
-    router('aujourdhui');
-  }));
-  
-  // Bouton + série
+  // --- Bouton + série ---
   body.appendChild(el('button', {
     class: 'btn secondaire petit',
     style: 'margin-top:8px;',
-    onclick: async () => {
+    onclick: async (ev) => {
+      ev.stopPropagation();
       const derniere = entree.series[entree.series.length - 1];
       entree.series.push({
         reps: derniere?.reps ?? 10,
@@ -338,7 +406,25 @@ async function rendreExerciceMuscu(root, exoDef, seance) {
     },
   }, '+ Ajouter une série'));
 
-  // Notes de l'exercice
+  // --- Ressenti douleur ---
+  body.appendChild(el('div', { class: 'serie-labels', style: 'grid-template-columns:1fr;margin-top:14px;' },
+    [el('span', {}, 'Douleur')]));
+  body.appendChild(rendreChoixBoutons(OPTIONS_DOULEUR, entree.douleur, async (val) => {
+    entree.douleur = val;
+    await sauvegarder(seance, { silencieux: true });
+    router('aujourdhui');
+  }));
+
+  // --- Ressenti difficulté ---
+  body.appendChild(el('div', { class: 'serie-labels', style: 'grid-template-columns:1fr;margin-top:14px;' },
+    [el('span', {}, 'Difficulté ressentie')]));
+  body.appendChild(rendreChoixBoutons(OPTIONS_DIFFICULTE, entree.difficulte, async (val) => {
+    entree.difficulte = val;
+    await sauvegarder(seance, { silencieux: true });
+    router('aujourdhui');
+  }));
+
+  // --- Notes exercice ---
   const notesExo = el('textarea', {
     rows: 2,
     placeholder: 'Notes sur cet exercice…',
@@ -437,11 +523,31 @@ async function rendreConditionnement(root, ref, seance) {
   root.appendChild(container);
 }
 
-function initialiserSeries(exoDef, exo) {
+async function initialiserSeries(exoDef, exo) {
   const nb = exoDef.series || 3;
-  const charge = exoDef.charge_cible_kg ?? null;
+  const posId = exoDef.position ?? (exo.positions?.[0]?.id ?? null);
+  const position = exo.positions?.find(p => p.id === posId);
+
+  // Priorité 1 : état utilisateur (dernière perf sur cette position)
+  let charge = null;
+  try {
+    const etat = await getEtatExercice(exo.id);
+    if (etat?.derniere_charge_kg != null && etat.position_active === posId) {
+      charge = etat.derniere_charge_kg;
+    }
+  } catch {}
+
+  // Priorité 2 : valeur de départ (programme > position > exercice)
+  if (charge == null) {
+    charge = exoDef.charge_de_depart_kg
+          ?? position?.charge_kg_depart
+          ?? exo.charge_kg_depart
+          ?? null;
+  }
+
   const reps = exoDef.reps ?? (exo.unite === 'duree_sec' ? null : 10);
   const dureeSec = exoDef.duree_sec ?? (exo.unite === 'duree_sec' ? exo.duree_sec_defaut ?? 30 : null);
+
   const arr = [];
   for (let i = 0; i < nb; i++) {
     arr.push({
@@ -455,7 +561,7 @@ function initialiserSeries(exoDef, exo) {
   return arr;
 }
 
-function formaterPrescription(exoDef, exo) {
+function formaterPrescription(exoDef, exo, position) {
   const parts = [];
   if (exoDef.series) parts.push(`${exoDef.series} séries`);
   if (exoDef.reps) parts.push(`${exoDef.reps} reps`);
@@ -465,7 +571,8 @@ function formaterPrescription(exoDef, exo) {
       : `${exoDef.duree_sec} sec`;
     parts.push(d);
   }
-  if (exoDef.charge_cible_kg) parts.push(`${exoDef.charge_cible_kg} kg`);
+  const charge = exoDef.charge_de_depart_kg ?? position?.charge_kg_depart ?? exo.charge_kg_depart;
+  if (charge) parts.push(`${charge} kg`);
   return parts.join(' · ');
 }
 
@@ -719,6 +826,52 @@ async function sauvegarder(seance, opts = {}) {
     if (!opts.silencieux) toast('Enregistré', 'ok');
   } catch (err) {
     toast('Erreur d\'enregistrement : ' + err.message, 'danger');
+  }
+}
+
+async function mettreAJourEtatExercices(seance) {
+  for (const entree of seance.exercices || []) {
+    if (!entree.series || entree.series.length === 0) continue;
+
+    const etat = await getEtatExercice(entree.ref) || {
+      ref: entree.ref,
+      position_active: entree.position ?? null,
+      historique_charges: [],
+      restrictions: [],
+    };
+
+    // Dernière charge validée sur cette position
+    const derniere = [...entree.series].reverse().find(s => s.validee && s.charge_kg != null);
+    if (derniere) {
+      etat.derniere_charge_kg = derniere.charge_kg;
+      etat.derniere_seance = seance.date;
+      etat.position_active = entree.position ?? etat.position_active;
+
+      etat.historique_charges = etat.historique_charges || [];
+      etat.historique_charges.push({
+        date: seance.date,
+        kg: derniere.charge_kg,
+        position: entree.position ?? null,
+      });
+      if (etat.historique_charges.length > 50) {
+        etat.historique_charges = etat.historique_charges.slice(-50);
+      }
+    }
+
+    // Restrictions (douleur signalée)
+    if (entree.douleur && entree.douleur !== 'aucune') {
+      etat.restrictions = etat.restrictions || [];
+      const existante = etat.restrictions.find(r => r.type === entree.douleur);
+      if (!existante) {
+        etat.restrictions.push({
+          type: entree.douleur,
+          depuis: seance.date,
+          note: `Signalée à la séance du ${seance.date}`,
+        });
+      }
+    }
+
+    await putEtatExercice(etat);
   }
 }
 
