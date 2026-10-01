@@ -54,11 +54,16 @@ async function init() {
 // ---------- Routage ----------
 
 async function router(nom) {
+  const scrollY = window.scrollY;
   vider(vueEl());
   const titres = { aujourdhui: "Aujourd'hui", historique: 'Historique', parametres: 'Paramètres' };
   if (titreEl()) titreEl().textContent = titres[nom] || 'Companion Gym';
 
-  if (nom === 'aujourdhui') return vueAujourdhui();
+  if (nom === 'aujourdhui') {
+    await vueAujourdhui();
+    requestAnimationFrame(() => window.scrollTo(0, scrollY));
+    return;
+  }
   if (nom === 'historique') return vueHistorique();
   if (nom === 'parametres') return vueParametres();
 }
@@ -409,7 +414,7 @@ async function rendreExerciceMuscu(root, exoDef, seance) {
       el('span', {}, 'RPE'), el('span', {}, '▶'), el('span', {}, ''),
     ]));
     entree.series.forEach((serie, idx) => {
-      body.appendChild(rendreSerieDuree(serie, idx, cibleSec, reposSec, seance, exo));
+      body.appendChild(rendreSerieDuree(serie, idx, cibleSec, reposSec, seance, container, exo, entree));
     });
   } else {
     body.appendChild(el('div', { class: 'serie-labels' }, [
@@ -417,7 +422,7 @@ async function rendreExerciceMuscu(root, exoDef, seance) {
       el('span', {}, 'kg'), el('span', {}, 'RPE'), el('span', {}, ''),
     ]));
     entree.series.forEach((serie, idx) => {
-      body.appendChild(rendreSerie(serie, idx, reposSec, seance));
+      body.appendChild(rendreSerie(serie, idx, reposSec, seance, container, exo, entree));
     });
   }
 
@@ -617,7 +622,7 @@ function formaterPrescription(exoDef, exo, position) {
   return parts.join(' · ');
 }
 
-function rendreSerie(serie, idx, reposSec, seance) {
+function rendreSerie(serie, idx, reposSec, seance, containerExo, exo, entree) {
   const inputReps = el('input', {
     type: 'number', inputmode: 'decimal', placeholder: '—',
     value: serie.reps ?? '', min: '0',
@@ -630,6 +635,13 @@ function rendreSerie(serie, idx, reposSec, seance) {
     type: 'number', inputmode: 'decimal', placeholder: '—',
     value: serie.rpe ?? '', min: '1', max: '10', step: '0.5',
   });
+
+  const majFond = () => {
+    const termine = entree.series.every(s => s.validee);
+    if (termine) containerExo.classList.add('exo-fait');
+    else containerExo.classList.remove('exo-fait');
+  };
+
   const btn = el('button', {
     class: 'icon-btn',
     style: 'font-size:1.1rem;padding:6px;min-width:32px;',
@@ -638,8 +650,19 @@ function rendreSerie(serie, idx, reposSec, seance) {
       ev.stopPropagation();
       serie.validee = !serie.validee;
       if (serie.validee) demarrerSimple(reposSec, { label: 'Repos' });
+      else timerArreter();
       await sauvegarder(seance, { silencieux: true });
-      router('aujourdhui');
+
+      // Mise à jour locale du bouton et des inputs
+      ev.target.textContent = serie.validee ? '✓' : '○';
+      if (serie.validee) {
+        inputReps.classList.add('valide');
+        inputCharge.classList.add('valide');
+      } else {
+        inputReps.classList.remove('valide');
+        inputCharge.classList.remove('valide');
+      }
+      majFond();
     },
   }, serie.validee ? '✓' : '○');
 
@@ -730,12 +753,7 @@ async function rendreExerciceMobilite(root, exoDef, seance, typeOverride) {
 
   let entree = seance.exercices.find(e => e.ref === exoDef.ref);
   if (!entree) {
-    entree = {
-      ref: exoDef.ref,
-      nom_snapshot: exo.nom,
-      fait: false,
-      ressenti: null,
-    };
+    entree = { ref: exoDef.ref, nom_snapshot: exo.nom, fait: false, ressenti: null };
     seance.exercices.push(entree);
   }
 
@@ -752,20 +770,33 @@ async function rendreExerciceMobilite(root, exoDef, seance, typeOverride) {
     }, '▶ Voir la vidéo'));
   }
 
-  // Bouton Fait
+  const titre = el('h3', {}, exo.nom);
+  const prescription = el('span', { class: 'prescription' }, '');
+
+  const majMarqueur = () => {
+    const marqueur = entree.ressenti === 'douleur' ? '⚠ '
+                   : entree.ressenti === 'inconfort' ? '! '
+                   : entree.fait ? '✓ ' : '';
+    titre.textContent = marqueur + exo.nom;
+    prescription.textContent = (exo.duree_sec_defaut ? `${exo.duree_sec_defaut} s` : '');
+  };
+
   const btnFait = el('button', {
     class: 'btn ' + (entree.fait ? 'secondaire' : 'petit'),
     style: 'margin-top:10px;',
+    if (entree.fait) container.classList.add('exo-fait');
+    else container.classList.remove('exo-fait');
     onclick: async (ev) => {
       ev.stopPropagation();
       entree.fait = !entree.fait;
       await sauvegarder(seance, { silencieux: true });
-      router('aujourdhui');
+      ev.target.textContent = entree.fait ? '✓ Fait' : 'Marquer comme fait';
+      ev.target.className = 'btn ' + (entree.fait ? 'secondaire' : 'petit');
+      majMarqueur();
     },
   }, entree.fait ? '✓ Fait' : 'Marquer comme fait');
   body.appendChild(btnFait);
-  
-  // Bouton chrono pour les étirements / exercices en durée
+
   if (exo.duree_sec_defaut) {
     body.appendChild(el('button', {
       class: 'btn secondaire petit',
@@ -776,32 +807,27 @@ async function rendreExerciceMobilite(root, exoDef, seance, typeOverride) {
       },
     }, `⏱ Démarrer ${exo.duree_sec_defaut} sec`));
   }
-  
-  // Ressenti (mobilité)
+
   body.appendChild(el('div', { class: 'serie-labels', style: 'grid-template-columns:1fr;margin-top:14px;' },
     [el('span', {}, 'Ressenti')]));
   body.appendChild(rendreChoixBoutons(OPTIONS_RESSENTI, entree.ressenti, async (val) => {
     entree.ressenti = val;
     await sauvegarder(seance, { silencieux: true });
-    router('aujourdhui');
+    majMarqueur();
   }));
 
-  // Marqueur dans l'en-tête
-  const marqueur = entree.ressenti === 'douleur' ? '⚠ '
-                 : entree.ressenti === 'inconfort' ? '! '
-                 : entree.fait ? '✓ ' : '';
+  majMarqueur();
 
-  const container = el('div', { class: 'exo' }, [
+  const container = el('div', {
+    class: 'exo' + (entree.fait ? ' exo-fait' : ''),
+  }, [
     el('div', {
       class: 'exo-header',
       onclick: () => body.classList.toggle('hidden'),
-    }, [
-      el('h3', {}, exo.nom),
-      el('span', { class: 'prescription' },
-        marqueur + (exo.duree_sec_defaut ? `${exo.duree_sec_defaut} s` : '')),
-    ]),
+    }, [titre, prescription]),
     body,
   ]);
+
   root.appendChild(container);
 }
 
@@ -829,20 +855,37 @@ async function rendreCardio(root, ref, seance) {
   if (exo.vitesse_kmh_defaut) infos.push(`${exo.vitesse_kmh_defaut} km/h`);
   if (exo.inclinaison_pct_defaut) infos.push(`${exo.inclinaison_pct_defaut}%`);
 
-    const btnFait = el('button', {
+  const titre = el('h3', {}, (seance.cardio.fait ? '✓ ' : '') + exo.nom);
+
+  const btnFait = el('button', {
     class: 'btn ' + (seance.cardio.fait ? 'secondaire' : 'petit'),
     style: 'margin-top:10px;',
     onclick: async (ev) => {
       ev.stopPropagation();
       seance.cardio.fait = !seance.cardio.fait;
       await sauvegarder(seance, { silencieux: true });
-      router('aujourdhui');
+
+      // Mise à jour locale sans re-render
+      const container = ev.target.closest('.exo');
+      if (seance.cardio.fait) {
+        container.classList.add('exo-fait');
+        titre.textContent = '✓ ' + exo.nom;
+        ev.target.textContent = '✓ Fait';
+        ev.target.className = 'btn secondaire';
+      } else {
+        container.classList.remove('exo-fait');
+        titre.textContent = exo.nom;
+        ev.target.textContent = 'Marquer comme fait';
+        ev.target.className = 'btn petit';
+      }
     },
   }, seance.cardio.fait ? '✓ Fait' : 'Marquer comme fait');
 
-  root.appendChild(el('div', { class: 'exo' + (seance.cardio.fait ? ' exo-fait' : '') }, [
+  const container = el('div', {
+    class: 'exo' + (seance.cardio.fait ? ' exo-fait' : ''),
+  }, [
     el('div', { class: 'exo-header' }, [
-      el('h3', {}, (seance.cardio.fait ? '✓ ' : '') + exo.nom),
+      titre,
       el('span', { class: 'prescription' }, infos.join(' · ')),
     ]),
     el('div', { style: 'padding:0 14px 14px 14px;' }, [
@@ -851,17 +894,14 @@ async function rendreCardio(root, ref, seance) {
       input,
       btnFait,
     ]),
-  ]));
-  
-  // Si le cardio a des phases, proposer un minuteur de séquence
+  ]);
+  root.appendChild(container);
+
+  // Séquence de phases (tapis)
   if (Array.isArray(exo.phases) && exo.phases.length > 0) {
     const phases = exo.phases.map(p => {
       const [d1, d2] = p.min;
-      return {
-        duree_sec: (d2 - d1) * 60,
-        label: p.note || `${d1}-${d2} min`,
-        type: 'travail',
-      };
+      return { duree_sec: (d2 - d1) * 60, label: p.note || `${d1}-${d2} min`, type: 'travail' };
     });
     const totalMin = exo.phases.reduce((acc, p) => acc + (p.min[1] - p.min[0]), 0);
     const btn = el('button', {
@@ -872,11 +912,11 @@ async function rendreCardio(root, ref, seance) {
           seance.cardio.duree_min = totalMin;
           await sauvegarder(seance, { silencieux: true });
           toast(`Durée enregistrée : ${totalMin} min`, 'ok');
-          router('aujourdhui');
+          input.value = totalMin;
         },
       }),
     }, `⏱ Démarrer la séquence (${totalMin} min)`);
-    root.appendChild(btn);
+    container.querySelector('div:last-child').appendChild(btn);
   }
 }
 
