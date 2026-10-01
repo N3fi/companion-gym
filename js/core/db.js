@@ -2,8 +2,9 @@
 // Une seule base, un seul store "seances" indexé par date (YYYY-MM-DD).
 
 const DB_NAME = 'companion-gym';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_SEANCES = 'seances';
+const STORE_PROGRAMME = 'programme';
 
 let dbPromise = null;
 
@@ -15,6 +16,9 @@ function openDB() {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(STORE_SEANCES)) {
         db.createObjectStore(STORE_SEANCES, { keyPath: 'date' });
+      }
+      if (!db.objectStoreNames.contains(STORE_PROGRAMME)) {
+        db.createObjectStore(STORE_PROGRAMME, { keyPath: 'id' });
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -78,6 +82,38 @@ export async function getAllSeances() {
     const req = t.objectStore(STORE_SEANCES).getAll();
     req.onsuccess = () => resolve(req.result || []);
     req.onerror = () => reject(req.error);
+  });
+}
+
+// --- Programme (un seul enregistrement, id = 'actif') ---
+
+export async function getProgrammeActif() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(STORE_PROGRAMME, 'readonly');
+    const req = t.objectStore(STORE_PROGRAMME).get('actif');
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function putProgrammeActif(programme) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(STORE_PROGRAMME, 'readwrite');
+    t.objectStore(STORE_PROGRAMME).put({ id: 'actif', ...programme });
+    t.oncomplete = () => resolve();
+    t.onerror = () => reject(t.error);
+  });
+}
+
+export async function deleteProgrammeActif() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(STORE_PROGRAMME, 'readwrite');
+    t.objectStore(STORE_PROGRAMME).delete('actif');
+    t.oncomplete = () => resolve();
+    t.onerror = () => reject(t.error);
   });
 }
 
