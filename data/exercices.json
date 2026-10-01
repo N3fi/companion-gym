@@ -29,41 +29,47 @@
         "Verrouiller les genoux en haut"
       ],
       "reglages": {
-        "siege": "Règle le dossier pour que ton dos et ta tête soient plaqués, sans que le bassin ne décolle en position basse",
-        "plateforme": "Position des pieds détermine le muscle ciblé (voir positions)",
-        "amplitude": "Descente jusqu'à 90° maximum au niveau des genoux"
+        "siege": "Règle le dossier pour que ton dos et ta tête soient plaqués, sans que le bassin ne décolle en position basse.",
+        "dossier": "Dossier incliné vers l'arrière (position standard Matrix).",
+        "plateforme": "Position des pieds détermine le muscle ciblé (voir positions).",
+        "amplitude": "Descente jusqu'à 90° maximum au niveau des genoux."
       },
       "positions": [
         {
+          "id": "pieds_bas",
           "cible": "quadriceps",
-          "pieds": "bas sur la plateforme, largeur de hanches",
+          "description": "Pieds placés en bas sur la plateforme, largeur de hanches",
           "charge_kg_depart": 50,
           "notes": "Pousse avec l'avant du pied. Surveille les genoux."
         },
         {
+          "id": "pieds_hauts",
           "cible": "fessiers + ischio",
-          "pieds": "hauts sur la plateforme, largeur de hanches",
+          "description": "Pieds placés en haut sur la plateforme, largeur de hanches",
           "charge_kg_depart": 35,
           "notes": "Pousse avec les talons. Ne descends pas trop bas."
         },
         {
+          "id": "pieds_larges",
           "cible": "fessiers + adducteurs",
-          "pieds": "larges, pieds tournés vers l'extérieur",
+          "description": "Pieds larges en haut de la plateforme, pieds tournés vers l'extérieur",
           "charge_kg_depart": 40,
           "notes": "Position stable, genoux dans l'axe des pieds."
         },
         {
+          "id": "pieds_milieu",
           "cible": "quadriceps + fessiers",
-          "pieds": "milieu de plateforme, largeur de hanches, talons",
+          "description": "Pieds placés au milieu de la plateforme, largeur de hanches, talons",
           "charge_kg_depart": 40,
           "notes": "Position polyvalente pour débuter."
         }
       ],
-      "notes_machine": "Sur les Matrix Medical, le poids de départ est de 2,63 kg (sans la goupille) ou 9,43 kg (avec la goupille). Pour toi, commence par 40 kg.",
+      "notes_machine": "Sur les machines Matrix Medical, le poids de départ est de 2,63 kg (sans la goupille) ou 9,43 kg (avec la goupille). Pile standard : 72 kg.",
       "charge_kg_depart": 40,
       "alternatives": [],
       "notes": null
     },
+    
     "chest_press": {
       "id": "chest_press",
       "nom": "Chest Press (Développé assis)",
@@ -90,87 +96,94 @@
         "Siège trop haut (transforme l'exercice en développé épaules)"
       ],
       "reglages": {
-        "siege": "Règle la hauteur pour que les poignées soient au niveau du milieu de la poitrine (entre le bas et le milieu du sternum). Si les poignées sont trop hautes, l'exercice devient un développé épaules[reference:1].",
-        "dossier": "Dos plaqué contre le dossier, omoplates serrées[reference:2].",
-        "poignees": "Sur les machines Matrix, il y a souvent deux positions de poignées. La prise neutre (paumes face à face) est plus confortable pour les épaules. La prise en pronation (paumes vers l'avant) cible plus les pectoraux.",
-        "amplitude": "Pousse sans verrouiller les coudes. Contrôle le retour jusqu'à sentir un étirement dans les pectoraux[reference:3]."
+        "siege": "Règle la hauteur pour que les poignées soient au niveau du milieu de la poitrine. Si les poignées sont trop hautes, l'exercice devient un développé épaules.",
+        "dossier": "Dos plaqué contre le dossier, omoplates serrées.",
+        "prise": "Sur les machines Matrix, deux positions de poignées : prise neutre (paumes face à face, plus confortable pour les épaules) ou pronation (paumes vers l'avant, cible davantage les pectoraux).",
+        "amplitude": "Pousse sans verrouiller les coudes. Contrôle le retour jusqu'à sentir un étirement dans les pectoraux."
       },
       "positions": [
         {
+          "id": "prise_neutre",
           "cible": "pectoraux (prise neutre)",
-          "prise": "neutre (paumes face à face)",
+          "description": "Prise neutre (paumes face à face)",
           "charge_kg_depart": 25,
           "notes": "Position la plus confortable pour les épaules. Bonne pour débuter."
         },
         {
+          "id": "prise_pronation",
           "cible": "pectoraux (prise pronation)",
-          "prise": "pronation (paumes vers l'avant, largeur d'épaules)",
+          "description": "Prise en pronation (paumes vers l'avant, largeur d'épaules)",
           "charge_kg_depart": 25,
-          "notes": "Cible davantage les pectoraux. Surveillez les épaules si vous ressentez une gêne."
+          "notes": "Cible davantage les pectoraux. Surveille les épaules si gêne."
         }
       ],
-      "notes_machine": "Sur les machines Matrix, la pile de poids standard est souvent de 72 kg. Commencez à 25 kg et ajustez selon votre RPE. Les séries Versa et Ultra disposent d'un ajustement de siège assisté par gaz.",
+      "notes_machine": "Sur les machines Matrix, la pile de poids standard est souvent de 72 kg. Les séries Versa et Ultra disposent d'un ajustement de siège assisté par gaz.",
       "charge_kg_depart": 25,
       "alternatives": [],
       "notes": null
     },
+    
     "lat_pulldown": {
-    "id": "lat_pulldown",
-    "nom": "Lat Pulldown (Tirage vertical)",
-    "categorie": "musculation",
-    "type": "polyarticulaire",
-    "niveau": "debutant",
-    "groupe_principal": "dos",
-    "muscles_secondaires": ["dorsaux", "biceps", "trapèzes", "rhomboïdes"],
-    "materiel": ["lat_pulldown"],
-    "unite": "reps",
-    "repos_defaut_sec": 75,
-    "video_url": "https://www.youtube.com/results?search_query=lat+pulldown+technique+débutant",
-    "youtube_id": null,
-    "technique": [
-      "Genoux calés sous les coussins",
-      "Poitrine haute, buste droit (inclinaison max 15° vers l'arrière)",
-      "Abaisse les omoplates avant de tirer",
-      "Tire la barre vers le haut du sternum",
-      "Contrôle la remontée (2 secondes)"
-    ],
-    "erreurs": [
-      "Balancer le buste",
-      "Tirer derrière la nuque",
-      "Hausser les épaules en fin de mouvement",
-      "Laisser les épaules remonter pendant la phase de retour"
-    ],
-    "reglages": {
-      "coussin_genoux": "Ajuste les coussins pour qu'ils reposent confortablement sur tes cuisses (utilise la goupille orange entre les jambes sur les machines Matrix)[reference:8]",
-      "siege": "La plupart des machines Matrix ont 6 positions de siège. Règle-le pour que tes pieds soient à plat et que tes genoux soient bien calés sous les coussins[reference:9]",
-      "amplitude": "Tire la barre vers le haut de la poitrine. Ne descends pas derrière la nuque."
+      "id": "lat_pulldown",
+      "nom": "Lat Pulldown (Tirage vertical)",
+      "categorie": "musculation",
+      "type": "polyarticulaire",
+      "niveau": "debutant",
+      "groupe_principal": "dos",
+      "muscles_secondaires": ["dorsaux", "biceps", "trapèzes", "rhomboïdes"],
+      "materiel": ["lat_pulldown"],
+      "unite": "reps",
+      "repos_defaut_sec": 75,
+      "video_url": "https://www.youtube.com/results?search_query=lat+pulldown+technique+débutant",
+      "youtube_id": null,
+      "technique": [
+        "Genoux calés sous les coussins",
+        "Poitrine haute, buste droit (inclinaison max 15° vers l'arrière)",
+        "Abaisse les omoplates avant de tirer",
+        "Tire la barre vers le haut du sternum",
+        "Contrôle la remontée (2 secondes)"
+      ],
+      "erreurs": [
+        "Balancer le buste",
+        "Tirer derrière la nuque",
+        "Hausser les épaules en fin de mouvement",
+        "Laisser les épaules remonter pendant la phase de retour"
+      ],
+      "reglages": {
+        "coussin_genoux": "Ajuste les coussins pour qu'ils reposent confortablement sur tes cuisses (goupille orange entre les jambes sur les machines Matrix).",
+        "siege": "6 positions sur les machines Matrix. Règle-le pour que tes pieds soient à plat et que tes genoux soient bien calés sous les coussins.",
+        "amplitude": "Tire la barre vers le haut de la poitrine. Ne descends pas derrière la nuque."
+      },
+      "positions": [
+        {
+          "id": "prise_pronation",
+          "cible": "grand dorsal (partie supérieure) + largeur du dos",
+          "description": "Prise large en pronation (paumes vers l'avant, écart > largeur d'épaules)",
+          "charge_kg_depart": 30,
+          "notes": "Variante classique. Coudes écartés du corps. Biceps moins sollicités. Idéal pour la largeur du dos."
+        },
+        {
+          "id": "prise_supination",
+          "cible": "grand dorsal (partie inférieure) + milieu du dos (rhomboïdes)",
+          "description": "Prise serrée en supination (paumes vers toi, écart ≤ largeur d'épaules)",
+          "charge_kg_depart": 25,
+          "notes": "Biceps plus impliqués → charge réduite. Amplitude plus grande. Excellent pour le milieu du dos."
+        },
+        {
+          "id": "prise_neutre",
+          "cible": "milieu du dos + grand dorsal",
+          "description": "Prise neutre (paumes face à face, V-bar ou barre parallèle)",
+          "charge_kg_depart": 27,
+          "notes": "Position des poignets la plus confortable. Moins de contrainte sur les épaules."
+        }
+      ],
+      "notes_machine": "Sur les machines Matrix (séries Go, Versa, Ultra), le poids de départ réduit et les réglages minimes rendent l'appareil accessible aux débutants. Pile standard : 72,6 kg, incréments de 2,3 kg.",
+      "charge_kg_depart": 30,
+      "alternatives": [],
+      "notes": null
     },
-    "positions": [
-      {
-        "cible": "grand dorsal (partie supérieure) + largeur du dos",
-        "prise": "large en pronation (paumes vers l'avant, écart > largeur d'épaules)",
-        "charge_kg_depart": 30,
-        "notes": "Variante classique. Coudes écartés du corps. Biceps moins sollicités. Idéal pour la largeur du dos."
-      },
-      {
-        "cible": "grand dorsal (partie inférieure) + milieu du dos (rhomboïdes)",
-        "prise": "serrée en supination (paumes vers toi, écart ≤ largeur d'épaules)",
-        "charge_kg_depart": 25,
-        "notes": "Biceps plus impliqués → charge réduite. Amplitude de mouvement plus grande. Excellent pour le milieu du dos et la zone entre les omoplates."
-      },
-      {
-        "cible": "milieu du dos + grand dorsal",
-        "prise": "neutre (paumes face à face, V-bar ou barre parallèle)",
-        "charge_kg_depart": 27,
-        "notes": "Position des poignets la plus confortable. Moins de contrainte sur les épaules. Bonne variante de transition."
-      }
-    ],
-    "notes_machine": "Sur les machines Matrix (séries Go, Versa, Ultra), le poids de départ réduit et les réglages minimes rendent l'appareil accessible aux débutants[reference:10]. La pile de poids standard est souvent de 72,6 kg avec des incréments de 2,3 kg.",
-    "charge_kg_depart": 30,
-    "alternatives": [],
-    "notes": null
-  },
-  "leg_curl": {
+    
+    "leg_curl": {
       "id": "leg_curl",
       "nom": "Leg Curl (Flexion des ischio-jambiers)",
       "categorie": "musculation",
@@ -197,23 +210,27 @@
         "Genoux non alignés avec le pivot"
       ],
       "reglages": {
-        "dossier": "Ajuste le dossier pour que tes genoux soient alignés avec le pivot orange[reference:6].",
-        "coussin_chevilles": "Positionne le coussin juste au-dessus des chevilles[reference:7].",
-        "coussin_cuisses": "Ajuste le coussin de cuisses pour qu'il maintienne tes jambes sans appuyer trop fort.",
+        "dossier": "Incline le dossier vers l'arrière pour plaquer ton dos.",
+        "alignement_pivot": "Ajuste le dossier pour que tes genoux soient alignés avec le pivot orange.",
+        "coussin_chevilles": "Positionne le coussin juste au-dessus des chevilles.",
+        "coussin_cuisses": "Ajuste-le pour maintenir tes jambes sans appuyer trop fort.",
         "amplitude": "Ramène les talons vers les fessiers en contrôlant. Redescends lentement."
       },
       "positions": [
         {
+          "id": "standard",
           "cible": "ischio-jambiers (ensemble)",
+          "description": "Position standard",
           "charge_kg_depart": 15,
-          "notes": "Position standard. Le pivot doit être aligné avec les genoux."
+          "notes": "Le pivot doit être aligné avec les genoux."
         }
       ],
-      "notes_machine": "Sur les machines Matrix Versa (VS-S711), le poids de départ est d'environ 3,4 kg (7,5 lbs). La pile standard est de 91 kg. Commencez à 15 kg et ajustez. Le coussin de cheville a 4 positions d'ajustement[reference:8].",
+      "notes_machine": "Sur les machines Matrix Versa (VS-S711), le poids de départ est d'environ 3,4 kg (7,5 lbs). Pile standard : 91 kg. Le coussin de cheville a 4 positions d'ajustement.",
       "charge_kg_depart": 15,
       "alternatives": [],
       "notes": null
     },
+    
     "rowing_poulie": {
       "id": "rowing_poulie",
       "nom": "Rowing Poulie (Tirage horizontal)",
@@ -241,30 +258,33 @@
         "Coussin pectoral mal positionné"
       ],
       "reglages": {
-        "coussin_pectoral": "Ajuste le coussin pour qu'il soit confortablement positionné contre ta poitrine quand tu tires[reference:11].",
+        "coussin_pectoral": "Ajuste le coussin pour qu'il soit confortablement positionné contre ta poitrine quand tu tires.",
         "siege": "Règle la hauteur pour que les poignées soient au niveau de ton nombril quand tu tires.",
         "prise": "Saisis la poignée, dos droit, poitrine ouverte. Tire vers le nombril en serrant les omoplates.",
         "amplitude": "Tire vers le nombril. Contrôle le retour."
       },
       "positions": [
         {
+          "id": "prise_neutre",
           "cible": "milieu du dos (rhomboïdes, trapèzes moyens)",
-          "prise": "neutre (paumes face à face) ou pronation",
+          "description": "Prise neutre (paumes face à face) ou pronation",
           "charge_kg_depart": 25,
           "notes": "Position standard. Le coussin pectoral stabilise le buste."
         },
         {
+          "id": "prise_supination",
           "cible": "dorsaux (prise serrée)",
-          "prise": "serrée en supination (paumes vers toi)",
+          "description": "Prise serrée en supination (paumes vers toi)",
           "charge_kg_depart": 22,
           "notes": "Biceps plus impliqués → charge légèrement réduite. Bonne variante pour le milieu du dos."
         }
       ],
-      "notes_machine": "Sur les Matrix G7-S34, le poids de départ est de 11,3 kg (25 lbs). La pile standard est de 73 kg. Le coussin pectoral a 9 positions et le siège 7 positions[reference:12]. Commencez à 25 kg.",
+      "notes_machine": "Sur les Matrix G7-S34, le poids de départ est de 11,3 kg (25 lbs). Pile standard : 73 kg. Coussin pectoral : 9 positions, siège : 7 positions.",
       "charge_kg_depart": 25,
       "alternatives": [],
       "notes": null
     },
+    
     "leg_extension": {
       "id": "leg_extension",
       "nom": "Leg Extension (Extension des quadriceps)",
@@ -282,29 +302,33 @@
         "Coussin juste au-dessus des chevilles",
         "Dos plaqué, bassin collé au siège",
         "Serre les abdos",
-        "Ramène les talons vers les fessiers en contrôlant",
-        "Redescends lentement (2 secondes)"
+        "Tends les jambes sans verrouiller les genoux",
+        "Contrôle la descente (2 secondes)"
       ],
       "erreurs": [
         "Décoller le bassin",
         "Utiliser l'élan",
         "Amplitude partielle",
-        "Genoux non alignés avec le pivot"
+        "Genoux non alignés avec le pivot",
+        "Verrouiller les genoux en haut"
       ],
       "reglages": {
-        "dossier": "Ajuste le dossier pour que tes genoux soient alignés avec le pivot orange[reference:15].",
-        "coussin_chevilles": "Positionne le coussin juste au-dessus des chevilles[reference:16].",
-        "coussin_cuisses": "Ajuste le coussin de cuisses pour qu'il maintienne tes jambes sans appuyer trop fort.",
-        "amplitude": "Ramène les talons vers les fessiers en contrôlant. Redescends lentement."
+        "dossier": "Incline le dossier vers l'arrière pour plaquer ton dos.",
+        "alignement_pivot": "Ajuste le dossier pour que tes genoux soient alignés avec le pivot orange.",
+        "coussin_chevilles": "Positionne le coussin juste au-dessus des chevilles.",
+        "coussin_cuisses": "Ajuste-le pour maintenir tes jambes sans appuyer trop fort.",
+        "amplitude": "Tends les jambes sans verrouiller les genoux. Contrôle la descente."
       },
       "positions": [
         {
+          "id": "standard",
           "cible": "quadriceps (droit fémoral, vaste)",
+          "description": "Position standard",
           "charge_kg_depart": 20,
-          "notes": "Position standard. Le pivot doit être aligné avec les genoux."
+          "notes": "Le pivot doit être aligné avec les genoux."
         }
       ],
-      "notes_machine": "Sur les machines Matrix Versa, le poids de départ est très léger (autour de 2,3 kg). La pile standard est de 104 kg[reference:17]. Commencez à 20 kg et ajustez.",
+      "notes_machine": "Sur les machines Matrix Versa, le poids de départ est très léger (autour de 2,3 kg). Pile standard : 104 kg.",
       "charge_kg_depart": 20,
       "alternatives": [],
       "notes": null
