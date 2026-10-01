@@ -103,6 +103,13 @@ async function vueAujourdhui() {
   // Construction de la séance si première fois
   const seanceActive = seance || creerSeanceVide(date, prog);
 
+  // Migration : ancienne structure cardio → cardios
+  if (seanceActive.cardio && !seanceActive.cardios) {
+    seanceActive.cardios = { [seanceActive.cardio.ref]: seanceActive.cardio };
+    delete seanceActive.cardio;
+    await sauvegarder(seanceActive, { silencieux: true });
+  }
+
   // Rendu des blocs
   for (const bloc of prog.blocs) {
     await rendreBloc(root, bloc, seanceActive);
@@ -835,19 +842,27 @@ async function rendreCardio(root, ref, seance) {
   const exo = await getExercice(ref);
   if (!exo) return;
 
-  if (!seance.cardio || seance.cardio.ref !== ref) {
-    seance.cardio = { ref, nom: exo.nom, duree_min: null, fait: false };
+  if (!seance.cardios) seance.cardios = {};
+  if (!seance.cardios[ref]) {
+    seance.cardios[ref] = {
+      ref,
+      nom: exo.nom,
+      duree_min: null,
+      fait: false,
+    };
     await sauvegarder(seance, { silencieux: true });
   }
+
+  const c = seance.cardios[ref];
 
   const input = el('input', {
     type: 'number', inputmode: 'decimal',
     placeholder: exo.duree_min_defaut ?? '',
-    value: seance.cardio.duree_min ?? exo.duree_min_defaut ?? '',
+    value: c.duree_min ?? exo.duree_min_defaut ?? '',
     style: 'width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-3);color:var(--fg);font-size:1rem;',
   });
   input.addEventListener('change', async () => {
-    seance.cardio.duree_min = input.value === '' ? null : Number(input.value);
+    c.duree_min = input.value === '' ? null : Number(input.value);
     await sauvegarder(seance, { silencieux: true });
   });
 
@@ -855,19 +870,18 @@ async function rendreCardio(root, ref, seance) {
   if (exo.vitesse_kmh_defaut) infos.push(`${exo.vitesse_kmh_defaut} km/h`);
   if (exo.inclinaison_pct_defaut) infos.push(`${exo.inclinaison_pct_defaut}%`);
 
-  const titre = el('h3', {}, (seance.cardio.fait ? '✓ ' : '') + exo.nom);
+  const titre = el('h3', {}, (c.fait ? '✓ ' : '') + exo.nom);
 
   const btnFait = el('button', {
-    class: 'btn ' + (seance.cardio.fait ? 'secondaire' : 'petit'),
+    class: 'btn ' + (c.fait ? 'secondaire' : 'petit'),
     style: 'margin-top:10px;',
     onclick: async (ev) => {
       ev.stopPropagation();
-      seance.cardio.fait = !seance.cardio.fait;
+      c.fait = !c.fait;
       await sauvegarder(seance, { silencieux: true });
 
-      // Mise à jour locale sans re-render
       const container = ev.target.closest('.exo');
-      if (seance.cardio.fait) {
+      if (c.fait) {
         container.classList.add('exo-fait');
         titre.textContent = '✓ ' + exo.nom;
         ev.target.textContent = '✓ Fait';
@@ -879,16 +893,16 @@ async function rendreCardio(root, ref, seance) {
         ev.target.className = 'btn petit';
       }
     },
-  }, seance.cardio.fait ? '✓ Fait' : 'Marquer comme fait');
+  }, c.fait ? '✓ Fait' : 'Marquer comme fait');
 
   const container = el('div', {
-    class: 'exo' + (seance.cardio.fait ? ' exo-fait' : ''),
+    class: 'exo' + (c.fait ? ' exo-fait' : ''),
   }, [
     el('div', { class: 'exo-header' }, [
       titre,
       el('span', { class: 'prescription' }, infos.join(' · ')),
     ]),
-    el('div', { style: 'padding:0 14px 14px 14px;' }, [
+    el('div', { class: 'exo-body-content', style: 'padding:0 14px 14px 14px;' }, [
       el('div', { class: 'serie-labels', style: 'grid-template-columns:1fr;' },
         [el('span', {}, 'Durée réelle (min)')]),
       input,
@@ -909,14 +923,14 @@ async function rendreCardio(root, ref, seance) {
       style: 'margin-top:10px;',
       onclick: () => demarrerSequence(phases, {
         onFin: async () => {
-          seance.cardio.duree_min = totalMin;
+          c.duree_min = totalMin;
           await sauvegarder(seance, { silencieux: true });
           toast(`Durée enregistrée : ${totalMin} min`, 'ok');
           input.value = totalMin;
         },
       }),
     }, `⏱ Démarrer la séquence (${totalMin} min)`);
-    container.querySelector('div:last-child').appendChild(btn);
+    container.querySelector('.exo-body-content').appendChild(btn);
   }
 }
 
