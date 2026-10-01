@@ -2,9 +2,10 @@
 // Une seule base, un seul store "seances" indexé par date (YYYY-MM-DD).
 
 const DB_NAME = 'companion-gym';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_SEANCES = 'seances';
 const STORE_PROGRAMME = 'programme';
+const STORE_ETAT_EXERCICES = 'etat_exercices';
 
 let dbPromise = null;
 
@@ -19,6 +20,9 @@ function openDB() {
       }
       if (!db.objectStoreNames.contains(STORE_PROGRAMME)) {
         db.createObjectStore(STORE_PROGRAMME, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(STORE_ETAT_EXERCICES)) {
+        db.createObjectStore(STORE_ETAT_EXERCICES, { keyPath: 'ref' });
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -114,6 +118,38 @@ export async function deleteProgrammeActif() {
     t.objectStore(STORE_PROGRAMME).delete('actif');
     t.oncomplete = () => resolve();
     t.onerror = () => reject(t.error);
+  });
+}
+
+// --- État utilisateur par exercice ---
+
+export async function getEtatExercice(ref) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(STORE_ETAT_EXERCICES, 'readonly');
+    const req = t.objectStore(STORE_ETAT_EXERCICES).get(ref);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function putEtatExercice(etat) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(STORE_ETAT_EXERCICES, 'readwrite');
+    t.objectStore(STORE_ETAT_EXERCICES).put(etat);
+    t.oncomplete = () => resolve();
+    t.onerror = () => reject(t.error);
+  });
+}
+
+export async function getAllEtatsExercices() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(STORE_ETAT_EXERCICES, 'readonly');
+    const req = t.objectStore(STORE_ETAT_EXERCICES).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
   });
 }
 
